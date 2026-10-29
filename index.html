@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PacketStory – drop a capture, get the story</title>
+<meta name="description" content="Drop a .pcap file and get the story of what happened, in plain language. Runs entirely in your browser; nothing is uploaded.">
+<meta property="og:title" content="PacketStory"><meta property="og:description" content="Drop a .pcap file, get the story. Runs entirely in your browser.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E📡%3C/text%3E%3C/svg%3E">
+<style>
+:root{--bg:#0a0f0a;--fg:#33ff66;--dim:#1c8f3c;--amb:#ffb000;--red:#ff5555}
+*{box-sizing:border-box}
+body{margin:0 auto;max-width:960px;padding:24px;background:var(--bg);color:var(--fg);font:15px/1.5 "Courier New",monospace}
+h1{margin:0;font-size:28px;letter-spacing:2px}h2{font-size:16px;color:var(--amb);margin:28px 0 6px}
+.tag,.foot{color:var(--dim)}
+#drop{margin:20px 0;padding:36px;border:2px dashed var(--dim);text-align:center;cursor:pointer}
+#drop.on,#drop:hover{border-color:var(--fg);background:#0f1a0f}
+pre{margin:0;overflow-x:auto;white-space:pre}
+.warn{color:var(--red)}.ok{color:var(--dim)}.amb{color:var(--amb)}button{background:none;border:1px solid var(--dim);color:var(--fg);font:inherit;padding:6px 12px;cursor:pointer}button:hover{border-color:var(--fg)}a{color:var(--amb)}
+</style></head><body>
+<h1>PACKETSTORY<span style="animation:b 1s steps(1) infinite">_</span></h1>
+<style>@keyframes b{50%{opacity:0}}</style>
+<div class="tag">Drop a .pcap file. Get the story. Nothing leaves your browser.</div>
+<div id="drop">[ drop a .pcap here, or click to choose ]</div>
+<p style="text-align:center;margin:0"><button id="demo">[ or load the demo capture ]</button></p>
+<input id="file" type="file" accept=".pcap,.cap" hidden>
+<div id="out"></div>
+<p class="foot">Classic .pcap only for now (convert pcapng with: editcap -F pcap in.pcapng out.pcap). Max 50 MB. Built by <a href="https://raeene.0vuln.com">Raeene</a>. Everything runs in your browser.</p>
+<script type="text/plain" id="core">
+//CORE-START
+const SVC={21:'FTP',22:'SSH',23:'Telnet',25:'SMTP',53:'DNS',80:'HTTP',110:'POP3',143:'IMAP',443:'HTTPS',445:'SMB',3306:'MySQL',3389:'RDP',8080:'HTTP-alt'};
+const ip4=(b,o)=>b[o]+'.'+b[o+1]+'.'+b[o+2]+'.'+b[o+3];
+const ip6=(v,o)=>Array.from({length:8},(_,i)=>v.getUint16(o+i*2).toString(16)).join(':');
+const PL=new Set([21,23,53,80,8080]);
+function l4(r,b,v,o,pr){
+  let po=0;
+  if(pr===6&&b.length>=o+20){r.proto='TCP';r.sp=v.getUint16(o);r.dp=v.getUint16(o+2);r.fl=b[o+13];po=o+(b[o+12]>>4)*4}
+  else if(pr===17&&b.length>=o+8){r.proto='UDP';r.sp=v.getUint16(o);r.dp=v.getUint16(o+2);po=o+8}
+  else if(pr===1||pr===58)r.proto='ICMP';
+  if(po&&po<b.length&&(PL.has(r.sp)||PL.has(r.dp)))r.pl=String.fromCharCode.apply(null,b.subarray(po,Math.min(b.length,po+300)));
+  return r;
+}
+function decode(b,link,len){
+  const r={len,proto:'Other'};let o=0,et;
+  const v=new DataView(b.buffer,b.byteOffset,b.byteLength);
+  if(link===1){if(b.length<14)return r;et=v.getUint16(12);o=14;while(et===0x8100&&b.length>=o+4){et=v.getUint16(o+2);o+=4}}
+  else if(link===113){if(b.length<16)return r;et=v.getUint16(14);o=16}
+  else if(link===101||link===12){et=(b[0]>>4)===6?0x86dd:0x0800}
+  else return r;
+  if(et===0x0806){r.proto='ARP';if(b.length>=o+28){r.op=v.getUint16(o+6);r.mac=Array.from(b.subarray(o+8,o+14),x=>x.toString(16).padStart(2,'0')).join(':');r.src=ip4(b,o+14);r.dst=ip4(b,o+24)}return r}
+  if(et===0x0800){if(b.length<o+20)return r;const ihl=(b[o]&15)*4,pr=b[o+9];r.src=ip4(b,o+12);r.dst=ip4(b,o+16);return l4(r,b,v,o+ihl,pr)}
+  if(et===0x86dd){if(b.length<o+40)return r;r.src=ip6(v,o+8);r.dst=ip6(v,o+24);return l4(r,b,v,o+40,b[o+6])}
+  return r;
+}
+function parse(buf){
+  if(buf.byteLength<24)throw Error('file too short');
+  const dv=new DataView(buf),m=dv.getUint32(0,false);let le,nano=false;
+  if(m===0xa1b2c3d4)le=false;else if(m===0xd4c3b2a1)le=true;
+  else if(m===0xa1b23c4d){le=false;nano=true}else if(m===0x4d3cb2a1){le=true;nano=true}
+  else if(m===0x0a0d0d0a)throw Error('pcapng not supported yet; convert with editcap -F pcap');
+  else throw Error('not a pcap file');
+  const link=dv.getUint32(20,le)&0x0fffffff,pk=[];let o=24;
+  while(o+16<=buf.byteLength){
+    const s=dv.getUint32(o,le),u=dv.getUint32(o+4,le),cl=dv.getUint32(o+8,le),ol=dv.getUint32(o+12,le);
+    o+=16;if(o+cl>buf.byteLength)break;
+    const p=decode(new Uint8Array(buf,o,cl),link,ol);p.t=s+u/(nano?1e9:1e6);pk.push(p);o+=cl;
+  }
+  return{pk,link};
+}
+function analyze({pk,link}){
+  const n=pk.length;if(!n)throw Error('no packets found');
+  let t0=Infinity,t1=-Infinity,bytes=0;const proto={},talk={},ports={},syn={},ev=[],arp={},dns={},fail={},conn={};
+  for(const p of pk){if(p.t<t0)t0=p.t;if(p.t>t1)t1=p.t}
+  const add=(p,sev,tag,txt)=>ev.push({t:p.t,sev,tag,txt});
+  for(const p of pk){
+    bytes+=p.len;proto[p.proto]=(proto[p.proto]||0)+1;
+    if(p.src){const k=talk[p.src]||(talk[p.src]={p:0,b:0});k.p++;k.b+=p.len}
+    if(p.dp!==undefined)ports[p.dp]=(ports[p.dp]||0)+1;
+    const pair=p.src+'>'+p.dst,pl=p.pl;
+    if(p.proto==='TCP'&&(p.fl&0x12)===0x02){(syn[pair]||(syn[pair]={s:new Set(),t:p.t})).s.add(p.dp);(conn[pair+':'+p.dp]||(conn[pair+':'+p.dp]=[])).push(p.t)}
+    if(pl&&p.dp===21){
+      let m=/^USER (.+?)\r?\n/.exec(pl);if(m)add(p,'warn','T1552 Unsecured Credentials',`${p.src} sent FTP username "${m[1]}" to ${p.dst} in cleartext`);
+      m=/^PASS (.*?)\r?\n/.exec(pl);if(m)add(p,'warn','T1552 Unsecured Credentials',`${p.src} sent an FTP password (${m[1].length} characters) to ${p.dst} in cleartext`);
+      m=/^RETR (.+?)\r?\n/.exec(pl);if(m)add(p,'info','',`${p.src} requested file "${m[1]}" from ${p.dst} over FTP`);
+    }
+    if(pl&&p.sp===21&&pl.startsWith('530')){const k=fail[p.dst+'>'+p.src]||(fail[p.dst+'>'+p.src]={n:0,t:p.t});k.n++}
+    if(pl&&(p.dp===80||p.dp===8080)){const m=/Authorization: Basic (\S+)/i.exec(pl);if(m){let u='?';try{u=atob(m[1]).split(':')[0]}catch(e){}add(p,'warn','T1552 Unsecured Credentials',`${p.src} sent HTTP Basic credentials (user "${u}") to ${p.dst} unencrypted`)}}
+    if(p.proto==='UDP'&&p.dp===53&&pl&&pl.length>13){let o=12;const nm=[];while(o<pl.length&&pl.charCodeAt(o)){const l=pl.charCodeAt(o);nm.push(pl.substr(o+1,l));o+=l+1}const q=nm.join('.');if(q.length>=50){const k=dns[p.src]||(dns[p.src]={n:0,t:p.t,ex:q});k.n++}}
+    if(p.proto==='ARP'&&p.op===2)(arp[p.src]||(arp[p.src]={m:new Set(),t:p.t})).m.add(p.mac);
+  }
+  for(const[k,v]of Object.entries(syn))if(v.s.size>=20){const[a,b]=k.split('>');ev.push({t:v.t,sev:'warn',tag:'T1046 Network Service Discovery',txt:`${a} sent SYN packets to ${v.s.size} different ports on ${b} (suspected port scan)`})}
+  for(const[k,v]of Object.entries(fail))if(v.n>=5){const[a,b]=k.split('>');ev.push({t:v.t,sev:'alert',tag:'T1110 Brute Force',txt:`${a} failed to log in to ${b} over FTP ${v.n} times (suspected brute force)`})}
+  for(const[k,v]of Object.entries(dns))if(v.n>=10)ev.push({t:v.t,sev:'alert',tag:'T1071.004 DNS',txt:`${k} sent ${v.n} unusually long DNS queries, for example "${v.ex.slice(0,60)}" (suspected DNS tunneling)`});
+  for(const[k,v]of Object.entries(arp))if(v.m.size>=2)ev.push({t:v.t,sev:'alert',tag:'T1557.002 ARP Cache Poisoning',txt:`${k} was claimed by ${v.m.size} different MAC addresses (suspected ARP spoofing)`});
+  for(const[k,ts]of Object.entries(conn)){if(ts.length<8)continue;ts.sort((a,b)=>a-b);const d=ts.slice(1).map((x,i)=>x-ts[i]),m=d.reduce((a,b)=>a+b)/d.length,sd=Math.sqrt(d.reduce((a,b)=>a+(b-m)**2,0)/d.length);if(m>0.5&&sd/m<0.1)ev.push({t:ts[0],sev:'warn',tag:'T1071 Application Layer Protocol',txt:`${k.replace('>',' to ')} repeated ${ts.length} times about every ${m.toFixed(1)} s (suspected beaconing)`})}
+  const dur=t1-t0,B=60,buckets=new Array(B).fill(0);
+  for(const p of pk)buckets[Math.min(B-1,dur?Math.floor((p.t-t0)/dur*B):0)]++;
+  ev.sort((a,b)=>a.t-b.t);const mm=new Map();for(const e of ev){e.t-=t0;const l=mm.get(e.txt);if(l)l.c++;else{e.c=1;mm.set(e.txt,e)}}
+  const evs=[...mm.values()];for(const e of evs)if(e.c>1)e.txt+=' (x'+e.c+')';
+  return{n,bytes,dur,link,proto,talk,ports,buckets,ev:evs};
+}
+//CORE-END
+</script>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const RH='<!doctype html><meta charset="utf-8"><title>PacketStory report</title><style>body{background:#0a0f0a;color:#33ff66;font:15px/1.5 monospace;padding:24px;max-width:960px;margin:auto}h2{color:#ffb000}pre{white-space:pre-wrap}.warn{color:#ff5555}.amb{color:#ffb000}.ok{color:#1c8f3c}</style><h1>PACKETSTORY report</h1>';
+const hb=n=>n<1024?n+' B':n<1048576?(n/1024).toFixed(1)+' KB':(n/1048576).toFixed(1)+' MB';
+const bar=(v,m)=>'█'.repeat(Math.max(1,Math.round(v/m*28)));
+function render(a,f){
+  const top=(o,k,c)=>Object.entries(o).sort((x,y)=>(k?y[1][k]-x[1][k]:y[1]-x[1])).slice(0,c);
+  const pr=top(a.proto,0,8),tk=top(a.talk,'b',5),pt=top(a.ports,0,8),sp='▁▂▃▄▅▆▇█',mx=Math.max(...a.buckets);
+  let h=`<h2>&gt; summary</h2><pre>file      ${esc(f.name)}\npackets   ${a.n}\ntraffic   ${hb(a.bytes)}\nduration  ${a.dur.toFixed(2)} s\nlinktype  ${a.link}</pre>`;
+  h+=`<h2>&gt; protocols</h2><pre>${pr.map(([k,v])=>k.padEnd(7)+bar(v,pr[0][1]).padEnd(29)+v).join('\n')}</pre>`;
+  h+=`<h2>&gt; top talkers</h2><pre>${tk.map(([k,v])=>esc(k).padEnd(40)+(v.p+' pkts').padEnd(12)+hb(v.b)).join('\n')}</pre>`;
+  h+=`<h2>&gt; top destination ports</h2><pre>${pt.map(([k,v])=>String(k).padEnd(7)+(SVC[k]||'').padEnd(10)+v).join('\n')}</pre>`;
+  h+=`<h2>&gt; timeline</h2><pre>${a.buckets.map(v=>sp[Math.min(7,Math.floor(v/mx*7.99))]).join('')}</pre>`;
+  const fm=t=>String(Math.floor(t/60)).padStart(2,'0')+':'+(t%60).toFixed(1).padStart(4,'0'),cl={info:'ok',warn:'amb',alert:'warn'};
+  h+=`<h2>&gt; the story</h2><pre style="white-space:pre-wrap">${a.ev.length?a.ev.map(e=>`<span class="${cl[e.sev]}">[+${fm(e.t)}] ${esc(e.txt)}${e.tag?' <b>['+esc(e.tag)+']</b>':''}</span>`).join('\n'):'<span class="ok">[ok] nothing suspicious found</span>'}</pre>`;
+  $('#out').innerHTML=h+'<p><button id="save">[ save report ]</button></p>';
+  $('#save').onclick=()=>{const u=URL.createObjectURL(new Blob([RH+h],{type:'text/html'})),a=document.createElement('a');a.href=u;a.download='packetstory-report.html';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)};
+}
+const wurl=URL.createObjectURL(new Blob([$('#core').textContent+';onmessage=e=>{try{postMessage({ok:analyze(parse(e.data))})}catch(x){postMessage({err:x.message})}}'],{type:'text/javascript'}));
+const DEMO="1MOyoQIABAAAAAAAAAAAAP//AAABAAAAAPFTZQAAAAAqAAAAKgAAAP///////6q7zN3uAQgGAAEIAAYEAAKqu8zd7gEKAAABAAAAAAAACgAABQDxU2UgoQcAKgAAACoAAAD///////+qu8zd7gIIBgABCAAGBAACqrvM3e4CCgAAAQAAAAAAAAoAAAUA8VNlb2QIADYAAAA2AAAAAgICAgICBAQEBAQECABFAAAoAAEAAEAGAAAKAAAFCgAACZxBAAEAAAABAAAAAVACIAAAAAAAAPFTZb8nCQA2AAAANgAAAAICAgICAgQEBAQEBAgARQAAKAABAABABgAACgAABQoAAAmcQgACAAAAAQAAAAFQAiAAAAAAAADxU2UP6wkANgAAADYAAAACAgICAgIEBAQEBAQIAEUAACgAAQAAQAYAAAoAAAUKAAAJnEMAAwAAAAEAAAABUAIgAAAAAAAA8VNlX64KADYAAAA2AAAAAgICAgICBAQEBAQECABFAAAoAAEAAEAGAAAKAAAFCgAACZxEAAQAAAABAAAAAVACIAAAAAAAAPFTZa9xCwA2AAAANgAAAAICAgICAgQEBAQEBAgARQAAKAABAABABgAACgAABQoAAAmcRQAFAAAAAQAAAAFQAiAAAAAAAADxU2X/NAwANgAAADYAAAACAgICAgIEBAQEBAQIAEUAACgAAQAAQAYAAAoAAAUKAAAJnEYABgAAAAEAAAABUAIgAAAAAAAA8VNlT/gMADYAAAA2AAAAAgICAgICBAQEBAQECABFAAAoAAEAAEAGAAAKAAAFCgAACZxHAAcAAAABAAAAAVACIAAAAAAAAPFTZZ+7DQA2AAAANgAAAAICAgICAgQEBAQEBAgARQAAKAABAABABgAACgAABQoAAAmcSAAIAAAAAQAAAAFQAiAAAAAAAADxU2Xvfg4ANgAAADYAAAACAgICAgIEBAQEBAQIAEUAACgAAQAAQAYAAAoAAAUKAAAJnEkACQAAAAEAAAABUAIgAAAAAAAA8VNlP0IPADYAAAA2AAAAAgICAgICBAQEBAQECABFAAAoAAEAAEAGAAAKAAAFCgAACZxKAAoAAAABAAAAAVACIAAAAAAAAfFTZU/DAAA2AAAANgAAAAICAgICAgQEBAQEBAgARQAAKAABAABABgAACgAABQoAAAmcSwALAAAAAQAA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";
+function go(name,buf){
+  const out=$('#out');out.innerHTML='<p class="ok">analyzing...</p>';
+  const w=new Worker(wurl);
+  w.onmessage=e=>{w.terminate();e.data.err?out.innerHTML='<p class="warn">Could not read file: '+esc(e.data.err)+'</p>':render(e.data.ok,{name})};
+  w.onerror=()=>{w.terminate();out.innerHTML='<p class="warn">Analysis failed.</p>'};
+  w.postMessage(buf,[buf]);
+}
+async function run(f){
+  if(f.size>50*1048576){$('#out').innerHTML='<p class="warn">File too large (max 50 MB).</p>';return}
+  go(f.name,await f.arrayBuffer());
+}
+$('#demo').onclick=()=>go('demo.pcap',Uint8Array.from(atob(DEMO),c=>c.charCodeAt(0)).buffer);
+const d=$('#drop'),i=$('#file');
+d.onclick=()=>i.click();i.onchange=()=>i.files[0]&&run(i.files[0]);
+d.ondragover=e=>{e.preventDefault();d.classList.add('on')};d.ondragleave=()=>d.classList.remove('on');
+d.ondrop=e=>{e.preventDefault();d.classList.remove('on');e.dataTransfer.files[0]&&run(e.dataTransfer.files[0])};
+</script></body></html>
