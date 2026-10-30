@@ -6,16 +6,22 @@
 <meta property="og:title" content="PacketStory"><meta property="og:description" content="Drop a .pcap file, get the story. Runs entirely in your browser.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E📡%3C/text%3E%3C/svg%3E">
 <style>
-:root{--bg:#0a0f0a;--fg:#33ff66;--dim:#1c8f3c;--amb:#ffb000;--red:#ff5555}
-*{box-sizing:border-box}
-body{margin:0 auto;max-width:960px;padding:24px;background:var(--bg);color:var(--fg);font:15px/1.5 "Courier New",monospace}
-h1{margin:0;font-size:28px;letter-spacing:2px}h2{font-size:16px;color:var(--amb);margin:28px 0 6px}
+:root{--bg:#031018;--fg:#d6f3ff;--dim:#6fa6c0;--c:#4df3ff;--amb:#ffb938;--m:#ff4fa3;--line:#12425a}
+*{box-sizing:border-box}html{background:var(--bg)}
+body{margin:0 auto;max-width:980px;padding:24px 20px 56px;min-height:100vh;color:var(--fg);font:16px/1.5 "Cascadia Mono","SF Mono",Menlo,Consolas,"Courier New",monospace;background:radial-gradient(ellipse at 80% 0,#0b3a5a 0,transparent 55%),radial-gradient(ellipse at 0 100%,#0a2a4d 0,transparent 50%),var(--bg);text-shadow:0 0 6px rgba(77,243,255,.25)}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:9;background:repeating-linear-gradient(0deg,rgba(0,0,0,.2) 0 1px,transparent 1px 3px),radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,.55) 100%)}
+h1{margin:0;font-size:clamp(40px,10vw,76px);color:#fff;letter-spacing:3px;line-height:.95;font-weight:400;text-shadow:-3px 0 var(--m),3px 0 var(--c),0 0 24px rgba(77,243,255,.4)}
+h2{font-size:18px;font-weight:400;color:var(--c);margin:30px 0 6px}h2::before{content:"## ";color:var(--m)}
 .tag,.foot{color:var(--dim)}
-#drop{margin:20px 0;padding:36px;border:2px dashed var(--dim);text-align:center;cursor:pointer}
-#drop.on,#drop:hover{border-color:var(--fg);background:#0f1a0f}
-pre{margin:0;overflow-x:auto;white-space:pre}
-.warn{color:var(--red)}.ok{color:var(--dim)}.amb{color:var(--amb)}button{background:none;border:1px solid var(--dim);color:var(--fg);font:inherit;padding:6px 12px;cursor:pointer}button:hover{border-color:var(--fg)}a{color:var(--amb)}
+#drop{margin:22px 0 10px;padding:40px 20px;border:1px dashed var(--c);text-align:center;cursor:pointer;background:rgba(10,60,90,.25);box-shadow:inset 0 0 40px rgba(77,243,255,.08);transition:.15s}
+#drop.on,#drop:hover{border-style:solid;background:rgba(10,60,90,.5);box-shadow:0 0 24px rgba(77,243,255,.3),inset 0 0 40px rgba(77,243,255,.12)}
+pre{margin:0;overflow-x:auto;white-space:pre;padding:10px 14px;border-left:2px solid var(--line);background:rgba(3,22,36,.55)}
+.warn{color:var(--m)}.ok{color:var(--dim)}.amb{color:var(--amb)}
+button{background:rgba(10,60,90,.45);border:1px solid var(--c);color:var(--c);font:inherit;padding:6px 14px;cursor:pointer;text-shadow:none}button:hover{background:var(--c);color:#031018}
+a{color:var(--amb)}
+.hub{display:flex;justify-content:space-between;gap:12px;font-size:13px;color:var(--dim);border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:14px}.hub a{color:var(--dim);text-decoration:none}.hub a:hover{color:var(--c)}.hub b{color:var(--amb);font-weight:400}
 </style></head><body>
+<nav class="hub"><span><a href="https://0vuln.com">0vuln.com</a> / <b>pcap</b></span><span><a href="https://range.0vuln.com">range</a> · <a href="https://raeene.0vuln.com">about</a></span></nav>
 <h1>PACKETSTORY<span style="animation:b 1s steps(1) infinite">_</span></h1>
 <style>@keyframes b{50%{opacity:0}}</style>
 <div class="tag">Drop a .pcap file. Get the story. Nothing leaves your browser.</div>
@@ -101,19 +107,19 @@ function analyze({pk,link}){
 </script>
 <script>
 const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const RH='<!doctype html><meta charset="utf-8"><title>PacketStory report</title><style>body{background:#0a0f0a;color:#33ff66;font:15px/1.5 monospace;padding:24px;max-width:960px;margin:auto}h2{color:#ffb000}pre{white-space:pre-wrap}.warn{color:#ff5555}.amb{color:#ffb000}.ok{color:#1c8f3c}</style><h1>PACKETSTORY report</h1>';
+const RH='<!doctype html><meta charset="utf-8"><title>PacketStory report</title><style>body{background:#031018;color:#d6f3ff;font:15px/1.5 monospace;padding:24px;max-width:960px;margin:auto}h1,h2{color:#4df3ff}pre{white-space:pre-wrap}.warn{color:#ff4fa3}.amb{color:#ffb938}.ok{color:#6fa6c0}</style><h1>PACKETSTORY report</h1>';
 const hb=n=>n<1024?n+' B':n<1048576?(n/1024).toFixed(1)+' KB':(n/1048576).toFixed(1)+' MB';
 const bar=(v,m)=>'█'.repeat(Math.max(1,Math.round(v/m*28)));
 function render(a,f){
   const top=(o,k,c)=>Object.entries(o).sort((x,y)=>(k?y[1][k]-x[1][k]:y[1]-x[1])).slice(0,c);
   const pr=top(a.proto,0,8),tk=top(a.talk,'b',5),pt=top(a.ports,0,8),sp='▁▂▃▄▅▆▇█',mx=Math.max(...a.buckets);
-  let h=`<h2>&gt; summary</h2><pre>file      ${esc(f.name)}\npackets   ${a.n}\ntraffic   ${hb(a.bytes)}\nduration  ${a.dur.toFixed(2)} s\nlinktype  ${a.link}</pre>`;
-  h+=`<h2>&gt; protocols</h2><pre>${pr.map(([k,v])=>k.padEnd(7)+bar(v,pr[0][1]).padEnd(29)+v).join('\n')}</pre>`;
-  h+=`<h2>&gt; top talkers</h2><pre>${tk.map(([k,v])=>esc(k).padEnd(40)+(v.p+' pkts').padEnd(12)+hb(v.b)).join('\n')}</pre>`;
-  h+=`<h2>&gt; top destination ports</h2><pre>${pt.map(([k,v])=>String(k).padEnd(7)+(SVC[k]||'').padEnd(10)+v).join('\n')}</pre>`;
-  h+=`<h2>&gt; timeline</h2><pre>${a.buckets.map(v=>sp[Math.min(7,Math.floor(v/mx*7.99))]).join('')}</pre>`;
+  let h=`<h2>summary</h2><pre>file      ${esc(f.name)}\npackets   ${a.n}\ntraffic   ${hb(a.bytes)}\nduration  ${a.dur.toFixed(2)} s\nlinktype  ${a.link}</pre>`;
+  h+=`<h2>protocols</h2><pre>${pr.map(([k,v])=>k.padEnd(7)+bar(v,pr[0][1]).padEnd(29)+v).join('\n')}</pre>`;
+  h+=`<h2>top talkers</h2><pre>${tk.map(([k,v])=>esc(k).padEnd(40)+(v.p+' pkts').padEnd(12)+hb(v.b)).join('\n')}</pre>`;
+  h+=`<h2>top destination ports</h2><pre>${pt.map(([k,v])=>String(k).padEnd(7)+(SVC[k]||'').padEnd(10)+v).join('\n')}</pre>`;
+  h+=`<h2>timeline</h2><pre>${a.buckets.map(v=>sp[Math.min(7,Math.floor(v/mx*7.99))]).join('')}</pre>`;
   const fm=t=>String(Math.floor(t/60)).padStart(2,'0')+':'+(t%60).toFixed(1).padStart(4,'0'),cl={info:'ok',warn:'amb',alert:'warn'};
-  h+=`<h2>&gt; the story</h2><pre style="white-space:pre-wrap">${a.ev.length?a.ev.map(e=>`<span class="${cl[e.sev]}">[+${fm(e.t)}] ${esc(e.txt)}${e.tag?' <b>['+esc(e.tag)+']</b>':''}</span>`).join('\n'):'<span class="ok">[ok] nothing suspicious found</span>'}</pre>`;
+  h+=`<h2>the story</h2><pre style="white-space:pre-wrap">${a.ev.length?a.ev.map(e=>`<span class="${cl[e.sev]}">[+${fm(e.t)}] ${esc(e.txt)}${e.tag?' <b>['+esc(e.tag)+']</b>':''}</span>`).join('\n'):'<span class="ok">[ok] nothing suspicious found</span>'}</pre>`;
   $('#out').innerHTML=h+'<p><button id="save">[ save report ]</button></p>';
   $('#save').onclick=()=>{const u=URL.createObjectURL(new Blob([RH+h],{type:'text/html'})),a=document.createElement('a');a.href=u;a.download='packetstory-report.html';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)};
 }
