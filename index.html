@@ -8,7 +8,7 @@
 <style>
 :root{--bg:#031018;--fg:#d6f3ff;--dim:#6fa6c0;--c:#4df3ff;--amb:#ffb938;--m:#ff4fa3;--line:#12425a}
 *{box-sizing:border-box}html{background:var(--bg)}
-body{margin:0 auto;max-width:980px;padding:24px 20px 56px;min-height:100vh;color:var(--fg);font:16px/1.5 "Cascadia Mono","SF Mono",Menlo,Consolas,"Courier New",monospace;background:radial-gradient(ellipse at 80% 0,#0b3a5a 0,transparent 55%),radial-gradient(ellipse at 0 100%,#0a2a4d 0,transparent 50%),var(--bg);text-shadow:0 0 6px rgba(77,243,255,.25)}
+body{margin:0 auto;padding:20px 4vw 56px;min-height:100vh;color:var(--fg);font:16px/1.5 "Cascadia Mono","SF Mono",Menlo,Consolas,"Courier New",monospace;background:radial-gradient(ellipse at 80% 0,#0b3a5a 0,transparent 55%),radial-gradient(ellipse at 0 100%,#0a2a4d 0,transparent 50%),var(--bg);text-shadow:0 0 6px rgba(77,243,255,.25)}
 body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:9;background:repeating-linear-gradient(0deg,rgba(0,0,0,.2) 0 1px,transparent 1px 3px),radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,.55) 100%)}
 h1{margin:0;font-size:clamp(40px,10vw,76px);color:#fff;letter-spacing:3px;line-height:.95;font-weight:400;text-shadow:-3px 0 var(--m),3px 0 var(--c),0 0 24px rgba(77,243,255,.4)}
 h2{font-size:18px;font-weight:400;color:var(--c);margin:30px 0 6px}h2::before{content:"## ";color:var(--m)}
@@ -20,8 +20,9 @@ pre{margin:0;overflow-x:auto;white-space:pre;padding:10px 14px;border-left:2px s
 button{background:rgba(10,60,90,.45);border:1px solid var(--c);color:var(--c);font:inherit;padding:6px 14px;cursor:pointer;text-shadow:none}button:hover{background:var(--c);color:#031018}
 a{color:var(--amb)}
 .hub{display:flex;justify-content:space-between;gap:12px;font-size:13px;color:var(--dim);border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:14px}.hub a{color:var(--dim);text-decoration:none}.hub a:hover{color:var(--c)}.hub b{color:var(--amb);font-weight:400}
-</style></head><body>
-<nav class="hub"><span><a href="https://0vuln.com">0vuln.com</a> / <b>pcap</b></span><span><a href="https://range.0vuln.com">range</a> · <a href="https://raeene.0vuln.com">about</a></span></nav>
+#out{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:0 28px;align-items:start}#out .wide,#out>p{grid-column:1/-1}
+.fs{background:none;border:0;color:var(--dim);font:inherit;cursor:pointer;padding:0;text-shadow:none}.hub .fs:hover{background:none;color:var(--c)}</style></head><body>
+<nav class="hub"><span><a href="https://0vuln.com">0vuln.com</a> / <b>pcap</b></span><span><a href="https://range.0vuln.com">range</a> · <a href="https://raeene.0vuln.com">about</a> · <button id="fs" class="fs" title="Toggle fullscreen">⛶ full</button></span></nav>
 <h1>PACKETSTORY<span style="animation:b 1s steps(1) infinite">_</span></h1>
 <style>@keyframes b{50%{opacity:0}}</style>
 <div class="tag">Drop a .pcap file. Get the story. Nothing leaves your browser.</div>
@@ -113,14 +114,14 @@ const bar=(v,m)=>'█'.repeat(Math.max(1,Math.round(v/m*28)));
 function render(a,f){
   const top=(o,k,c)=>Object.entries(o).sort((x,y)=>(k?y[1][k]-x[1][k]:y[1]-x[1])).slice(0,c);
   const pr=top(a.proto,0,8),tk=top(a.talk,'b',5),pt=top(a.ports,0,8),sp='▁▂▃▄▅▆▇█',mx=Math.max(...a.buckets);
-  let h=`<h2>summary</h2><pre>file      ${esc(f.name)}\npackets   ${a.n}\ntraffic   ${hb(a.bytes)}\nduration  ${a.dur.toFixed(2)} s\nlinktype  ${a.link}</pre>`;
-  h+=`<h2>protocols</h2><pre>${pr.map(([k,v])=>k.padEnd(7)+bar(v,pr[0][1]).padEnd(29)+v).join('\n')}</pre>`;
-  h+=`<h2>top talkers</h2><pre>${tk.map(([k,v])=>esc(k).padEnd(40)+(v.p+' pkts').padEnd(12)+hb(v.b)).join('\n')}</pre>`;
-  h+=`<h2>top destination ports</h2><pre>${pt.map(([k,v])=>String(k).padEnd(7)+(SVC[k]||'').padEnd(10)+v).join('\n')}</pre>`;
-  h+=`<h2>timeline</h2><pre>${a.buckets.map(v=>sp[Math.min(7,Math.floor(v/mx*7.99))]).join('')}</pre>`;
+  let h=`<section><h2>summary</h2><pre>file      ${esc(f.name)}\npackets   ${a.n}\ntraffic   ${hb(a.bytes)}\nduration  ${a.dur.toFixed(2)} s\nlinktype  ${a.link}</pre></section>`;
+  h+=`<section><h2>protocols</h2><pre>${pr.map(([k,v])=>k.padEnd(7)+bar(v,pr[0][1]).padEnd(29)+v).join('\n')}</pre></section>`;
+  h+=`<section><h2>top talkers</h2><pre>${tk.map(([k,v])=>esc(k).padEnd(40)+(v.p+' pkts').padEnd(12)+hb(v.b)).join('\n')}</pre></section>`;
+  h+=`<section><h2>top destination ports</h2><pre>${pt.map(([k,v])=>String(k).padEnd(7)+(SVC[k]||'').padEnd(10)+v).join('\n')}</pre></section>`;
+  h+=`<section class="wide"><h2>timeline</h2><pre>${a.buckets.map(v=>sp[Math.min(7,Math.floor(v/mx*7.99))]).join('')}</pre></section>`;
   const fm=t=>String(Math.floor(t/60)).padStart(2,'0')+':'+(t%60).toFixed(1).padStart(4,'0'),cl={info:'ok',warn:'amb',alert:'warn'};
-  h+=`<h2>the story</h2><pre style="white-space:pre-wrap">${a.ev.length?a.ev.map(e=>`<span class="${cl[e.sev]}">[+${fm(e.t)}] ${esc(e.txt)}${e.tag?' <b>['+esc(e.tag)+']</b>':''}</span>`).join('\n'):'<span class="ok">[ok] nothing suspicious found</span>'}</pre>`;
-  $('#out').innerHTML=h+'<p><button id="save">[ save report ]</button></p>';
+  h+=`<section class="wide"><h2>the story</h2><pre style="white-space:pre-wrap">${a.ev.length?a.ev.map(e=>`<span class="${cl[e.sev]}">[+${fm(e.t)}] ${esc(e.txt)}${e.tag?' <b>['+esc(e.tag)+']</b>':''}</span>`).join('\n'):'<span class="ok">[ok] nothing suspicious found</span>'}</pre></section>`;
+  $('#out').innerHTML=h+'<p class="wide"><button id="save">[ save report ]</button></p>';
   $('#save').onclick=()=>{const u=URL.createObjectURL(new Blob([RH+h],{type:'text/html'})),a=document.createElement('a');a.href=u;a.download='packetstory-report.html';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)};
 }
 const wurl=URL.createObjectURL(new Blob([$('#core').textContent+';onmessage=e=>{try{postMessage({ok:analyze(parse(e.data))})}catch(x){postMessage({err:x.message})}}'],{type:'text/javascript'}));
@@ -141,4 +142,5 @@ const d=$('#drop'),i=$('#file');
 d.onclick=()=>i.click();i.onchange=()=>i.files[0]&&run(i.files[0]);
 d.ondragover=e=>{e.preventDefault();d.classList.add('on')};d.ondragleave=()=>d.classList.remove('on');
 d.ondrop=e=>{e.preventDefault();d.classList.remove('on');e.dataTransfer.files[0]&&run(e.dataTransfer.files[0])};
+(()=>{const b=document.getElementById('fs'),e=document.documentElement;if(b){if(e.requestFullscreen)b.onclick=()=>document.fullscreenElement?document.exitFullscreen():e.requestFullscreen();else b.hidden=true}})();
 </script></body></html>
