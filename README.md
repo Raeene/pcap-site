@@ -1,40 +1,52 @@
 # PacketStory
 
-Drop a `.pcap` file, get the story of what happened in plain language. It runs entirely in your browser: nothing is uploaded, and the page makes no network requests.
+Drop a `.pcap` or `.pcapng` file and get the story of what happened in plain language. It runs entirely in your browser: the capture is parsed by a Web Worker on your machine, and the page's Content-Security-Policy (`connect-src 'none'`) means the browser itself blocks any network request.
 
-![demo](demo.gif)
+Live at **[pcap.0vuln.com](https://pcap.0vuln.com)**. Try it instantly: [pcap.0vuln.com/#demo](https://pcap.0vuln.com/#demo).
 
 ## What it does
-- Parses classic `.pcap` captures (Ethernet, Linux cooked, raw IP; IPv4 and IPv6; TCP, UDP, ICMP, ARP).
-- Summarizes protocols, top talkers, top destination ports, and a traffic timeline.
-- Runs detectors and turns the findings into a timestamped story, each tagged with a MITRE ATT&CK technique.
-- Exports the result as a standalone HTML report.
+- Parses classic pcap (µs and ns) and **pcapng** (multiple interfaces, per-interface timestamp resolution).
+- Link layers: Ethernet (with VLAN tags), Linux cooked v1/v2, raw IP, BSD loopback. IPv4 and IPv6 (with extension headers); TCP, UDP, ICMP/ICMPv6, ARP; DNS and SNMP decoding.
+- Builds a timestamped **story** of findings, each linked to its MITRE ATT&CK technique.
+- Extracts **artifacts**: credentials (secrets are never shown, only their length), transferred files, HTTP requests, DNS names.
+- Summaries: timeline with findings marked, protocols, top talkers, destination ports, conversations.
+- A **packet table** with a filter (`ftp`, `ip:10.0.0.5`, `port:21`, `!arp`, free text). Click any talker, port or finding to filter.
+- Saves a standalone HTML report.
+- Receives sessions straight from [0vuln Range](https://range.0vuln.com) (the `analyze` command) through `postMessage`, with the sender's origin checked.
 
 ## Detectors
-| Finding | How it is detected | ATT&CK |
+| Finding | Heuristic | ATT&CK |
 |---|---|---|
-| Port scan | One host sends SYN packets to 20+ ports on one target | T1046 |
-| Cleartext credentials | FTP USER/PASS and HTTP Basic auth seen unencrypted (passwords are never shown, only their length) | T1552 |
-| Brute force | 5+ FTP "530 Login incorrect" replies to one client | T1110 |
-| DNS tunneling | 10+ DNS queries with names of 50+ characters from one host | T1071.004 |
+| Port scan | One host sends SYNs to 20+ ports on one target | T1046 |
+| Host sweep | One host probes the same port on 10+ hosts | T1046 |
+| Ping sweep | One host sends ICMP echo to 10+ hosts | T1018 |
+| Cleartext credentials | FTP, POP3, IMAP logins and HTTP Basic auth seen unencrypted | T1552 |
+| Telnet session | Any Telnet payload | T1552 |
+| Brute force | 5+ failed FTP/IMAP logins, or 10+ connections to an auth service (SSH, RDP, SMB...) | T1110 |
+| Vulnerability scanner | HTTP User-Agent of sqlmap, nikto, nmap, gobuster, ffuf... | T1595.002 |
+| Directory brute force | 20+ HTTP 404s to one client | T1595.003 |
+| DNS zone transfer | AXFR query | T1590.002 |
+| DNS tunneling | 10+ queries with very long names or labels | T1071.004 |
+| SNMP default community | Requests using `public` / `private` | T1602.001 |
 | ARP spoofing | One IP claimed by 2+ MAC addresses | T1557.002 |
 | Beaconing | 8+ connections to one destination at near-constant intervals | T1071 |
 
-These are heuristics, so results say "suspected". Only the first 300 bytes of each payload are inspected, and TCP streams are not reassembled.
+These are heuristics, so findings say "suspected". Only the first 512 bytes of each payload are inspected, and TCP streams are not reassembled.
 
-## Privacy
-All parsing happens locally in a Web Worker. The optional `_headers` file adds a Content-Security-Policy with `connect-src 'none'`, so the browser itself blocks any network request from the page.
+## Files
+- `index.html`, `app.css`, `app.js`: the UI (no inline scripts or styles, so the CSP can stay strict)
+- `core.js`: parser and detectors; runs as a Web Worker and can also be `require()`d from Node for tests
+- `_headers`: security headers for Cloudflare
 
-## Use it
-Open `index.html` locally, or deploy the folder to any static host (Cloudflare Pages: no build command, output directory `/`). Click "load the demo capture" to try it without a file.
+## Deploy
+Static site. Cloudflare Pages: no build command, output directory `/`.
 
 Only analyze captures you made yourself or public sample captures (for example the Wireshark sample captures).
 
 ## Roadmap
-- `.pcapng` support
-- TCP stream reassembly
-- More detectors (SMB, TLS anomalies)
-- IPv6 extension headers
+- TCP stream reassembly and "follow stream"
+- TLS metadata (SNI, JA3) and SMB detectors
+- Per-host drill-down view
 
 ## License
 MIT
