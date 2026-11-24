@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://pcap.0vuln.com/sitemap.xml
