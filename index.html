@@ -65,11 +65,11 @@
 
     <section class="section" id="how">
       <div class="wrap">
-        <div class="section-head reveal"><p class="eyebrow">How it works</p><h2 class="h-1">Parse. Detect.<br><span class="dim">Explain.</span></h2></div>
-        <div class="grid g3">
-          <div class="card reveal"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg></span><h3>Parse</h3><p>A Web Worker reads your file on your machine. Ethernet with VLANs, Linux cooked v1/v2, raw IP and loopback; IPv4 and IPv6; TCP, UDP, ICMP, ARP, DNS and SNMP.</p></div>
-          <div class="card reveal d1"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span><h3>Detect</h3><p>Heuristics flag scans, sweeps, brute force, cleartext logins, zone transfers, DNS tunneling, ARP spoofing and beaconing. Each one says "suspected", for a reason.</p></div>
-          <div class="card reveal d2"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V5a2 2 0 0 1 2-2h14v16H6a2 2 0 0 0-2 2zm0 0a2 2 0 0 0 2 2h14"/></svg></span><h3>Explain</h3><p>You get a timeline in plain language, the extracted artifacts, a network map and a packet table you can filter. Save it all as a standalone report.</p></div>
+        <div class="section-head reveal"><p class="eyebrow">How it works</p><h2 class="h-1">What happens to your file.</h2></div>
+        <div class="steps reveal">
+          <div><span class="n">01 / parse</span><h3>Read on your machine</h3><p>A Web Worker decodes the file locally: Ethernet with VLANs, Linux cooked v1/v2, raw IP and loopback; IPv4 and IPv6; TCP, UDP, ICMP, ARP, DNS and SNMP.</p></div>
+          <div><span class="n">02 / detect</span><h3>Look for attacks</h3><p>Heuristics flag scans, sweeps, brute force, cleartext logins, zone transfers, DNS tunneling, ARP spoofing and beaconing. Each says "suspected", for a reason.</p></div>
+          <div><span class="n">03 / explain</span><h3>Tell the story</h3><p>A timeline in plain language, the extracted artifacts, a network map and a packet table you can filter. Save it all as a standalone report.</p></div>
         </div>
       </div>
     </section>
@@ -100,7 +100,7 @@
         <div class="priv reveal">
           <div>
             <p class="eyebrow">Privacy</p>
-            <h2 class="h-1">Your capture never<br>leaves this tab.</h2>
+            <h2 class="h-1">Your capture never leaves this tab.</h2>
             <p class="lead">Not a promise in a privacy policy: the page's Content-Security-Policy forbids network requests, so the browser itself would block any attempt to send your data anywhere.</p>
           </div>
           <pre class="csp"><span class="d"># response header on pcap.0vuln.com</span>

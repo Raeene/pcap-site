@@ -276,3 +276,49 @@ a.card:hover { transform: translateY(-3px); }
 
 /* grid children may shrink below their content width (prevents mobile overflow) */
 .grid > *, .me-grid > *, .ps-grid > *, .shell-grid > *, .now-split > *, .about-grid > *, .priv > *, .rg-app > *, .work > *, .bento > *, .loop > * { min-width: 0; }
+
+/* =====================================================================
+   v2.1 identity: fewer template tropes, more structure
+   ===================================================================== */
+/* background: a quiet grid only, no drifting color blobs */
+.bg-fx i { display: none; }
+.bg-fx::before { opacity: .4; }
+/* emphasis is one solid color, never a gradient */
+.grad, .grad-acc { background: none; -webkit-background-clip: initial; background-clip: initial; color: var(--acc); }
+/* cards: plain border, no cursor spotlight, no lift */
+.card::before, .card::after { display: none; }
+.card { background: var(--bg-2); }
+.card:hover { border-color: var(--line-2); }
+a.card:hover { transform: none; }
+.btn-primary, .btn-primary:hover { box-shadow: none; }
+.btn-primary:hover { background: #e9ebf0; }
+.foot-word { display: none; }
+
+/* numbered, asymmetric section heads: "01  Label | Heading" */
+body { counter-reset: sec; }
+.section-head { max-width: none; display: grid; grid-template-columns: 220px minmax(0, 760px); gap: 0 40px; align-items: baseline; padding-top: 28px; border-top: 1px solid var(--line); }
+.section-head > :not(.eyebrow) { grid-column: 2; }
+.section-head .eyebrow { grid-row: 1 / span 3; counter-increment: sec; color: var(--muted); letter-spacing: .1em; margin: 0; }
+.section-head .eyebrow::before { content: counter(sec, decimal-leading-zero); width: auto; height: auto; background: none; opacity: 1; color: var(--acc); margin-right: 6px; }
+.section-head .lead { margin-top: 20px; }
+.section-head.center { text-align: left; margin-left: 0; }
+@media (max-width: 820px) { .section-head { grid-template-columns: 1fr; } .section-head > * { grid-column: 1 !important; } .section-head .eyebrow { grid-row: auto; margin-bottom: 18px; } }
+
+/* plain spec rows (used instead of icon-card grids) */
+.spec { border-top: 1px solid var(--line); }
+.spec > div { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 8px 40px; padding: 26px 0; border-bottom: 1px solid var(--line); }
+.spec dt, .spec .k { font: 500 13px/1.7 var(--mono); color: var(--acc); }
+.spec dd, .spec .v { margin: 0; color: var(--muted); font-size: 16px; max-width: 760px; }
+.spec dd b, .spec .v b { color: #fff; font-weight: 600; }
+@media (max-width: 820px) { .spec > div { grid-template-columns: 1fr; } }
+
+/* numbered steps (instead of icon cards) */
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--line); }
+.steps > div { padding: 28px 28px 8px 0; }
+.steps > div + div { padding-left: 28px; border-left: 1px solid var(--line); }
+.steps .n { display: block; font: 500 13px/1 var(--mono); color: var(--acc); margin-bottom: 18px; }
+.steps h3 { font-size: 22px; margin-bottom: 10px; }
+.steps p { color: var(--muted); font-size: 15px; }
+@media (max-width: 820px) { .steps { grid-template-columns: 1fr; } .steps > div, .steps > div + div { padding: 24px 0 4px; border-left: 0; border-bottom: 1px solid var(--line); } }
+.eyebrow::before { display: none; }
+.section-head .eyebrow::before { display: inline; }

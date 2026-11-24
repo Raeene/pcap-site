@@ -205,3 +205,12 @@
 .nf .code { font: 700 clamp(120px, 26vw, 280px)/.85 var(--display); letter-spacing: -.06em; margin-bottom: 24px; }
 .nf .lead { margin: 0 auto 36px; }
 .nf .row { justify-content: center; }
+
+/* v2.1 */
+.drop { animation: none; background: var(--line-2); box-shadow: none; }
+.drop:hover, .dragging .drop { background: rgba(34, 211, 238, .6); transform: none; }
+.drop-ic { box-shadow: none; animation: none; }
+.priv { background: none; border: 0; border-top: 1px solid var(--line); border-radius: 0; padding: 40px 0 0; }
+.verdict, .tile { animation: none; }
+.v-bad .v-ic { box-shadow: none; }
+.track i { background: var(--cyan); }
