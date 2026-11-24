@@ -286,3 +286,4 @@
 .case-done b { color: var(--green); }
 .case-done a { color: #fff; text-decoration: underline; }
 @media (max-width: 760px) { .case { grid-template-columns: 1fr; } }
+.tbl-wrap:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }

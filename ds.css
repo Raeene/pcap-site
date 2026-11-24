@@ -16,7 +16,7 @@
   --line-2: rgba(255, 255, 255, .14);
   --text: #eceef4;
   --muted: #a1a7b6;
-  --dim: #6b7183;
+  --dim: #7f8599;   /* 5:1+ contrast on every background (WCAG AA) */
   --red: #ff4d6d;
   --violet: #9b87ff;
   --cyan: #22d3ee;

@@ -78,16 +78,16 @@ function storyHtml(withLinks) {
 
 function artifacts() {
   let h = '';
-  if (A.creds.length) h += '<div class="panel"><div class="p-h"><h3>Credentials seen</h3><span class="dim">secrets are never shown, only their length</span></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Time</th><th>Protocol</th><th>User</th><th>Secret</th><th>From</th><th>To</th></tr></thead><tbody>' +
+  if (A.creds.length) h += '<div class="panel"><div class="p-h"><h3>Credentials seen</h3><span class="dim">secrets are never shown, only their length</span></div><div class="tbl-wrap" tabindex="0" role="region" aria-label="Scrollable table"><table class="tbl"><thead><tr><th>Time</th><th>Protocol</th><th>User</th><th>Secret</th><th>From</th><th>To</th></tr></thead><tbody>' +
     A.creds.map(c => `<tr><td class="m dim">+${fm(c.t)}</td><td><span class="proto">${esc(c.proto)}</span></td><td class="m warnc">${esc(c.user)}</td><td class="m dim">${c.len !== undefined ? '&bull;'.repeat(Math.min(c.len, 16)) + ' (' + c.len + ')' : 'n/a'}</td><td class="m">${esc(c.src)}</td><td class="m">${esc(c.dst)}</td></tr>`).join('') + '</tbody></table></div></div>';
-  if (A.files.length) h += '<div class="panel"><div class="p-h"><h3>Files transferred</h3></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Time</th><th>Protocol</th><th>Direction</th><th>File</th><th>Client</th><th>Server</th></tr></thead><tbody>' +
+  if (A.files.length) h += '<div class="panel"><div class="p-h"><h3>Files transferred</h3></div><div class="tbl-wrap" tabindex="0" role="region" aria-label="Scrollable table"><table class="tbl"><thead><tr><th>Time</th><th>Protocol</th><th>Direction</th><th>File</th><th>Client</th><th>Server</th></tr></thead><tbody>' +
     A.files.map(f => `<tr><td class="m dim">+${fm(f.t)}</td><td><span class="proto">${esc(f.proto)}</span></td><td>${esc(f.dir)}</td><td class="m warnc">${esc(f.name)}</td><td class="m">${esc(f.src)}</td><td class="m">${esc(f.dst)}</td></tr>`).join('') + '</tbody></table></div></div>';
   const cols = [];
-  if (A.http.length) cols.push('<div class="panel"><div class="p-h"><h3>HTTP requests</h3><span class="cnt">' + A.http.length + '</span></div><div class="tbl-wrap sh"><table class="tbl"><thead><tr><th>Client</th><th>Request</th><th>User-Agent</th></tr></thead><tbody>' +
+  if (A.http.length) cols.push('<div class="panel"><div class="p-h"><h3>HTTP requests</h3><span class="cnt">' + A.http.length + '</span></div><div class="tbl-wrap sh" tabindex="0" role="region" aria-label="Scrollable table"><table class="tbl"><thead><tr><th>Client</th><th>Request</th><th>User-Agent</th></tr></thead><tbody>' +
     A.http.slice(0, 50).map(r => `<tr><td class="m dim">${esc(r.src)}</td><td class="m">${esc(r.method + ' ' + r.host + r.path)}</td><td class="dim">${esc(r.ua.slice(0, 40))}</td></tr>`).join('') + '</tbody></table></div></div>');
-  if (A.tls && A.tls.length) cols.push('<div class="panel"><div class="p-h"><h3>TLS servers <small class="dim">from SNI</small></h3><span class="cnt">' + A.tls.length + '</span></div><div class="tbl-wrap sh"><table class="tbl"><thead><tr><th>Server name</th><th>Clients</th><th class="num">Handshakes</th></tr></thead><tbody>' +
+  if (A.tls && A.tls.length) cols.push('<div class="panel"><div class="p-h"><h3>TLS servers <small class="dim">from SNI</small></h3><span class="cnt">' + A.tls.length + '</span></div><div class="tbl-wrap sh" tabindex="0" role="region" aria-label="Scrollable table"><table class="tbl"><thead><tr><th>Server name</th><th>Clients</th><th class="num">Handshakes</th></tr></thead><tbody>' +
     A.tls.slice(0, 50).map(t => `<tr><td class="m"><button class="lnk m" type="button" data-f="${esc(t.name)}">${esc(t.name)}</button>${t.port !== 443 ? ' <span class="dim">:' + t.port + '</span>' : ''}</td><td class="m dim">${esc(t.clients.join(' '))}</td><td class="num">${t.n}</td></tr>`).join('') + '</tbody></table></div></div>');
-  if (A.dns.length) cols.push('<div class="panel"><div class="p-h"><h3>DNS names</h3><span class="cnt">' + A.dns.length + (A.dns.length === 60 ? '+' : '') + '</span></div><div class="tbl-wrap sh"><table class="tbl"><thead><tr><th>Name</th><th>Types</th><th class="num">Queries</th></tr></thead><tbody>' +
+  if (A.dns.length) cols.push('<div class="panel"><div class="p-h"><h3>DNS names</h3><span class="cnt">' + A.dns.length + (A.dns.length === 60 ? '+' : '') + '</span></div><div class="tbl-wrap sh" tabindex="0" role="region" aria-label="Scrollable table"><table class="tbl"><thead><tr><th>Name</th><th>Types</th><th class="num">Queries</th></tr></thead><tbody>' +
     A.dns.slice(0, 30).map(d => `<tr><td class="m">${esc(d.name)}</td><td class="dim">${esc(d.types.join(' '))}</td><td class="num">${d.n}</td></tr>`).join('') + '</tbody></table></div></div>');
   if (cols.length) h += '<div class="two">' + cols.join('') + '</div>';
   return h;
@@ -103,7 +103,7 @@ function netmap() {
   const W = 760, H = 460, cx = W / 2, cy = H / 2, R = Math.min(W, H) / 2 - 70, pos = {};
   hosts.forEach((h, i) => { const a = -Math.PI / 2 + i / hosts.length * Math.PI * 2; pos[h] = [cx + Math.cos(a) * R * (hosts.length > 2 ? 1 : .6), cy + Math.sin(a) * R * .82]; });
   const maxB = Math.max(...A.conv.map(c => c.b2), 1);
-  let s = `<svg class="nm" viewBox="0 0 ${W} ${H}" role="img" aria-label="Network map of the busiest hosts">`;
+  let s = `<svg class="nm" viewBox="0 0 ${W} ${H}" role="group" aria-label="Network map of the busiest hosts. Each host is a button that filters the packet table.">`;
   s += '<defs><radialGradient id="ng"><stop offset="0" stop-color="#22d3ee" stop-opacity=".35"/><stop offset="1" stop-color="#22d3ee" stop-opacity="0"/></radialGradient><radialGradient id="nr"><stop offset="0" stop-color="#ff4d6d" stop-opacity=".45"/><stop offset="1" stop-color="#ff4d6d" stop-opacity="0"/></radialGradient></defs>';
   for (const c of A.conv) {
     if (!pos[c.a] || !pos[c.b]) continue;
@@ -141,11 +141,11 @@ function render() {
   h += '<div class="panel"><div class="p-h"><h3>Protocols</h3></div>' + barList(pr.map(([k, v]) => [k, v, k.toLowerCase()]), pr[0][1], k => k) + '</div>';
   h += '<div class="panel"><div class="p-h"><h3>Top talkers</h3><span class="dim">bytes sent</span></div>' + barList(tk.map(([k, v]) => [k, v.b, 'ip:' + k]), tk[0] ? tk[0][1].b : 1, k => k, hb) + '</div>';
   if (pt.length) h += '<div class="panel"><div class="p-h"><h3>Destination ports</h3></div>' + barList(pt.map(([k, v]) => [k, v, 'port:' + k]), pt[0][1], k => k + (SVC[k] ? ' · ' + SVC[k] : '')) + '</div>';
-  h += '</div><div class="panel"><div class="p-h"><h3>Conversations</h3></div><div class="tbl-wrap sh"><table class="tbl"><thead><tr><th>Between</th><th>Protocols</th><th class="num">Packets</th><th class="num">Bytes</th></tr></thead><tbody>' +
+  h += '</div><div class="panel"><div class="p-h"><h3>Conversations</h3></div><div class="tbl-wrap sh" tabindex="0" role="region" aria-label="Scrollable table"><table class="tbl"><thead><tr><th>Between</th><th>Protocols</th><th class="num">Packets</th><th class="num">Bytes</th></tr></thead><tbody>' +
     A.conv.map(c => `<tr><td><button class="lnk m" type="button" data-f="ip:${esc(c.a)} ip:${esc(c.b)}">${esc(c.a)} &harr; ${esc(c.b)}</button></td><td class="dim">${esc(Object.keys(c.apps).slice(0, 4).join(' '))}</td><td class="num">${c.p.toLocaleString()}</td><td class="num">${hb(c.b2)}</td></tr>`).join('') + '</tbody></table></div></div></section>';
   h += '<section class="dsec" id="s-packets"><div class="sec-h"><h2>Packets</h2><span class="cnt" id="cnt"></span><button class="btn btn-ghost btn-sm sec-act" type="button" id="csv">' + ico('file') + 'Export CSV</button></div><div class="filter">' + ico('search') + '<input id="q" type="search" placeholder="ftp   ip:10.0.0.5   port:21   !arp   login" aria-label="Filter packets" autocomplete="off" spellcheck="false"><span class="kbd">/</span></div>' +
     '<p class="hint">Terms are combined with AND. Use <code>ip:</code>, <code>port:</code>, a protocol name, <code>!</code> to exclude, or any text from the info column. <b>Click a packet</b> to inspect its layers and bytes, or follow its conversation.</p>' +
-    '<div class="tbl-wrap pkts"><table class="tbl"><thead><tr><th class="num">#</th><th>Time</th><th>Source</th><th>Destination</th><th>Proto</th><th class="num">Len</th><th>Info</th></tr></thead><tbody id="rows"></tbody></table></div></section>';
+    '<div class="tbl-wrap pkts" tabindex="0" role="region" aria-label="Packet table"><table class="tbl"><thead><tr><th class="num">#</th><th>Time</th><th>Source</th><th>Destination</th><th>Proto</th><th class="num">Len</th><th>Info</th></tr></thead><tbody id="rows"></tbody></table></div></section>';
   $('#out').innerHTML = h;
   $('#tab-art').hidden = !art;
   $('#tab-case').hidden = FILE !== 'demo.pcap';
