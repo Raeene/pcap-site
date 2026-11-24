@@ -199,6 +199,17 @@
   // ---- footer year ----
   doc.querySelectorAll('[data-year]').forEach(function (e) { e.textContent = new Date().getFullYear(); });
 
+  // ---- offline support (tools only: body has data-offline) ----
+  if ('serviceWorker' in navigator && doc.body.hasAttribute('data-offline') && (location.protocol === 'https:' || LOCAL)) {
+    var first = !navigator.serviceWorker.controller;
+    navigator.serviceWorker.register('/sw.js').then(function (reg) {
+      reg.addEventListener('updatefound', function () {
+        var w = reg.installing;
+        w && w.addEventListener('statechange', function () { if (w.state === 'activated' && first) toast('Saved for offline use. This tool now works without internet.'); });
+      });
+    }).catch(function () { /* offline mode is a bonus, never an error */ });
+  }
+
   // ---- public API for site scripts ----
   window.OV = {
     url: url, toast: toast, copy: copy, svg: svg, reduce: reduce, local: LOCAL, open: open,
