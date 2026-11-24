@@ -88,6 +88,14 @@ const Inspect = (() => {
     } else if ((pr === 1 || pr === 58) && end >= o + 4) {
       L.push({ name: pr === 1 ? 'ICMP' : 'ICMPv6', sum: 'type ' + b[o] + ', code ' + b[o + 1], fields: [F('Type', b[o], o, o + 1), F('Code', b[o + 1], o + 1, o + 2), F('Checksum', '0x' + hex(v.getUint16(o + 2), 4), o + 2, o + 4)] });
     }
+    if (payload && b[payload[0]] === 0x16 && b[payload[0] + 1] === 3 && payload[1] - payload[0] >= 9) {
+      const [s] = payload, ver = { 0x0301: '1.0', 0x0302: '1.1', 0x0303: '1.2', 0x0304: '1.3' }[v.getUint16(s + 1)] || '?', hs = b[s + 5];
+      const host = A.rows[cur] && A.rows[cur].info.match(/SNI=(\S+)/), HS = { 1: 'ClientHello', 2: 'ServerHello', 11: 'Certificate', 16: 'ClientKeyExchange' };
+      L.push({ name: 'TLS', sum: (HS[hs] || 'handshake ' + hs) + (host ? ' · ' + host[1] : ''), fields: [
+        F('Content type', '22 (Handshake)', s, s + 1), F('Record version', 'TLS ' + ver, s + 1, s + 3), F('Record length', v.getUint16(s + 3), s + 3, s + 5),
+        F('Handshake type', hs + ' (' + (HS[hs] || '?') + ')', s + 5, s + 6),
+        ...(host ? [F('Server name (SNI)', host[1], s, payload[1], 'sent in cleartext: anyone on the path can see which site you are visiting')] : [])] });
+    }
     if (payload) {
       const [s, e] = payload, txt = latin1(b.subarray(s, Math.min(e, s + 64)));
       L.push({ name: 'Payload', sum: (e - s) + ' bytes', fields: [F('Data', printable(txt) + (e - s > 64 ? ' …' : ''), s, e)] });

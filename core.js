@@ -51,6 +51,28 @@ function snmp(s) {
   return { ver: ver === 0 ? 'v1' : ver === 1 ? 'v2c' : '?', community, pdu: names[pdu] || 'pdu' };
 }
 
+// TLS ClientHello -> server name (SNI). The hostname is sent in cleartext even though the rest is encrypted.
+function sni(b, o, end) {
+  if (end - o < 48 || b[o] !== 0x16 || b[o + 1] !== 3 || b[o + 5] !== 1) return null;
+  const u16 = i => (b[i] << 8) | b[i + 1];
+  let p = o + 5 + 4 + 2 + 32;                     // record hdr, handshake hdr, version, random
+  if (p >= end) return null; p += 1 + b[p];        // session id
+  if (p + 2 > end) return null; p += 2 + u16(p);   // cipher suites
+  if (p >= end) return null; p += 1 + b[p];        // compression methods
+  if (p + 2 > end) return null;
+  const extEnd = Math.min(end, p + 2 + u16(p)); p += 2;
+  while (p + 4 <= extEnd) {
+    const type = u16(p), len = u16(p + 2); p += 4;
+    if (type === 0 && p + 5 <= extEnd && b[p + 2] === 0) {
+      const n = u16(p + 3); if (p + 5 + n > extEnd || n > 253) return null;
+      let h = ''; for (let i = p + 5; i < p + 5 + n; i++) h += String.fromCharCode(b[i]);
+      return /^[a-z0-9.-]+$/i.test(h) ? h.toLowerCase() : null;
+    }
+    p += len;
+  }
+  return null;
+}
+
 function l4(r, b, v, o, end, pr) {
   let po = 0;
   if (pr === 6 && end >= o + 20) { r.proto = 'TCP'; r.sp = v.getUint16(o); r.dp = v.getUint16(o + 2); r.fl = b[o + 13]; po = o + (b[o + 12] >> 4) * 4; }
@@ -61,6 +83,7 @@ function l4(r, b, v, o, end, pr) {
     r.app = (r.sp < r.dp ? (SVC[r.sp] || SVC[r.dp]) : (SVC[r.dp] || SVC[r.sp])) || r.proto;
     r.plen = Math.max(0, end - po);
     if (po && po < end && (PL.has(r.sp) || PL.has(r.dp))) r.pl = latin1(b, po, Math.min(end, po + 512));
+    if (pr === 6 && po && end - po > 47 && b[po] === 0x16) { const h = sni(b, po, end); if (h) r.sni = h; }
   }
   return r;
 }
@@ -108,6 +131,7 @@ function info(r) {
     return m[t] || 'type ' + t;
   }
   if (r.dns) return (r.dns.qr ? 'response ' : 'query ') + r.dns.qtype + ' ' + r.dns.name + (r.dns.qr ? ' (' + r.dns.an + ' answers)' : '');
+  if (r.sni) return r.sp + ' → ' + r.dp + '  TLS ClientHello  SNI=' + r.sni;
   if (r.snmp) return 'SNMP' + r.snmp.ver + ' ' + r.snmp.pdu + ' community="' + r.snmp.community + '"';
   let s = r.sp + ' → ' + r.dp;
   if (r.proto === 'TCP') s += ' [' + flagStr(r.fl) + ']';
@@ -194,7 +218,7 @@ function analyze({ pk, format, links }) {
   let t0 = Infinity, t1 = -Infinity, bytes = 0;
   for (const p of pk) { if (p.t < t0) t0 = p.t; if (p.t > t1) t1 = p.t; }
   const proto = {}, talk = {}, ports = {}, conv = {}, syn = {}, sweep = {}, icmp = {}, arp = {}, tunnel = {}, fail = {}, conn = {}, authc = {}, http404 = {};
-  const ev = [], creds = [], files = [], dnsN = {}, http = [];
+  const ev = [], creds = [], files = [], dnsN = {}, http = [], tls = {};
   const add = (t, sev, id, name, txt) => ev.push({ t, sev, id, name, txt });
   const once = new Set(), first = (k) => once.has(k) ? false : (once.add(k), true);
 
@@ -208,6 +232,7 @@ function analyze({ pk, format, links }) {
     }
     if (p.dp !== undefined && (p.proto === 'UDP' || (p.fl & 0x12) === 0x02)) ports[p.dp] = (ports[p.dp] || 0) + 1;
     const pair = p.src + '>' + p.dst, pl = p.pl;
+    if (p.sni) { const k = tls[p.sni] || (tls[p.sni] = { n: 0, c: new Set(), port: p.dp }); k.n++; k.c.add(p.src); }
 
     if (p.proto === 'TCP' && (p.fl & 0x12) === 0x02) {
       (syn[pair] || (syn[pair] = { s: new Set(), t: p.t })).s.add(p.dp);
@@ -285,6 +310,7 @@ function analyze({ pk, format, links }) {
     hosts: Object.keys(talk).length,
     conv: Object.values(conv).sort((x, y) => y.b2 - x.b2).slice(0, 12),
     creds: rel(creds), files: rel(files), http: rel(http).slice(0, 200),
+    tls: Object.entries(tls).sort((a, b) => b[1].n - a[1].n).slice(0, 100).map(([name, v]) => ({ name, n: v.n, clients: [...v.c].slice(0, 4), port: v.port })),
     dns: Object.entries(dnsN).sort((a, b) => b[1].n - a[1].n).slice(0, 60).map(([name, v]) => ({ name, n: v.n, types: Object.keys(v.types) })),
     rows
   };

@@ -13,6 +13,7 @@ Live at **[pcap.0vuln.com](https://pcap.0vuln.com)**. Try it instantly: [pcap.0v
 - A **packet table** with a filter (`ftp`, `ip:10.0.0.5`, `port:21`, `!arp`, free text). Click any talker, port or finding to filter.
 - **Packet inspector**: click any packet to see every layer decoded (Ethernet, IPv4/IPv6, TCP/UDP/ICMP, ARP) with checksum verification, and a hex view that highlights the bytes of the field you hover.
 - **Follow conversation**: rebuilds everything two endpoints said to each other, client and server colored.
+- **TLS server names (SNI)** pulled from ClientHello messages, so encrypted HTTPS still shows which sites were contacted.
 - **Network map** of the busiest hosts, and **CSV export** of the filtered packets.
 - Saves a standalone HTML report.
 - Receives sessions straight from [0vuln Range](https://range.0vuln.com) (the `analyze` command) through `postMessage`, with the sender's origin checked.
@@ -49,7 +50,7 @@ Static site. Cloudflare Pages: no build command, output directory `/`.
 Only analyze captures you made yourself or public sample captures (for example the Wireshark sample captures).
 
 ## Roadmap
-- TLS metadata (SNI, JA3) and SMB detectors
+- JA3 fingerprints and SMB detectors
 - Per-host drill-down view
 
 ## License
