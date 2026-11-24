@@ -214,3 +214,53 @@
 .verdict, .tile { animation: none; }
 .v-bad .v-ic { box-shadow: none; }
 .track i { background: var(--cyan); }
+
+/* ---------- packet inspector drawer ---------- */
+.sec-act { margin-left: auto; }
+.sec-act svg { width: 14px; height: 14px; }
+#rows tr[data-pk] { cursor: pointer; }
+#rows tr.sel td { background: rgba(34, 211, 238, .1); }
+#rows tr:focus-visible { outline: 2px solid var(--cyan); outline-offset: -2px; }
+.insp { position: fixed; top: var(--nav-h); right: 0; bottom: 0; z-index: 60; width: min(560px, 100vw); display: flex; flex-direction: column; background: #0b0d13; border-left: 1px solid var(--line-2); box-shadow: -30px 0 80px -30px #000; transform: translateX(105%); transition: transform .3s var(--ease); }
+.insp.open { transform: none; }
+.insp-h { display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--line); }
+.insp-h b { flex: 1; font: 600 15px/1.3 var(--display); color: #fff; }
+.insp-nav { display: flex; gap: 4px; }
+.insp-nav button { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--line); color: var(--muted); font-size: 16px; }
+.insp-nav button:hover { color: #fff; border-color: var(--line-2); }
+.insp-tabs { display: flex; gap: 4px; padding: 10px 16px; border-bottom: 1px solid var(--line); }
+.insp-tabs button { padding: 7px 12px; border-radius: 8px; font-size: 13px; color: var(--muted); }
+.insp-tabs button.on { color: #fff; background: rgba(34, 211, 238, .14); }
+.insp-tabs button:disabled { opacity: .35; cursor: not-allowed; }
+.insp-b { flex: 1; overflow-y: auto; padding: 16px 20px 28px; }
+.insp-note { font-size: 13px; color: var(--dim); margin: 14px 0; }
+.lyr details { border: 1px solid var(--line); border-radius: 10px; margin-bottom: 8px; background: var(--panel); }
+.lyr summary { display: flex; gap: 12px; align-items: baseline; padding: 11px 14px; cursor: pointer; list-style: none; }
+.lyr summary::-webkit-details-marker { display: none; }
+.lyr summary::before { content: "\25B8"; color: var(--dim); font-size: 11px; transition: transform .2s; }
+.lyr details[open] summary::before { transform: rotate(90deg); }
+.lyr summary b { color: #fff; font-size: 14px; }
+.lyr summary span { margin-left: auto; font: 12px var(--mono); color: var(--dim); text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60%; }
+.lyr dl { margin: 0; padding: 4px 14px 12px 34px; }
+.lyr dl div { display: grid; grid-template-columns: 170px 1fr; gap: 12px; padding: 5px 6px; border-radius: 6px; font-size: 13px; }
+.lyr dl div:hover { background: rgba(34, 211, 238, .08); }
+.lyr dt { color: var(--muted); }
+.lyr dd { margin: 0; font: 12.5px var(--mono); color: #e3e6ee; word-break: break-all; white-space: pre-wrap; }
+.lyr dd.good { color: var(--green); } .lyr dd.bad { color: var(--red); }
+.hex { margin-top: 16px; font: 12.5px/1.7 var(--mono); color: #cfd4df; }
+.hex > div { display: flex; gap: 14px; white-space: pre; }
+.hex .off { color: var(--dim); }
+.hex .hx i { font-style: normal; padding: 0 3px; border-radius: 3px; }
+.hex .as i { font-style: normal; border-radius: 2px; }
+.hex i.hl { background: rgba(34, 211, 238, .35); color: #fff; }
+.fl-h { display: flex; gap: 12px; align-items: center; font: 600 13px var(--mono); flex-wrap: wrap; }
+.fl-h .c, .insp-note b.c { color: var(--red); } .fl-h .s { color: var(--cyan); }
+.fl { display: grid; grid-template-columns: 70px 1fr; gap: 10px; margin-top: 6px; cursor: pointer; }
+.fl-m { font: 11.5px var(--mono); color: var(--dim); padding-top: 9px; }
+.fl pre { margin: 0; padding: 8px 12px; border-radius: 8px; font: 12.5px/1.55 var(--mono); white-space: pre-wrap; word-break: break-all; }
+.fl.c pre { background: rgba(255, 77, 109, .1); color: #ffd1d9; border-left: 2px solid var(--red); }
+.fl.s pre { background: rgba(34, 211, 238, .08); color: #c9f5fc; border-left: 2px solid var(--cyan); }
+.fl:hover pre { filter: brightness(1.25); }
+@media (max-width: 600px) { .lyr dl div { grid-template-columns: 1fr; gap: 2px; } .lyr dl { padding-left: 14px; } .hex { font-size: 10.5px; } .hex > div { gap: 8px; } }
+.story li, .st-card { min-width: 0; }
+.st-card p, .tl-axis, .verdict p { overflow-wrap: anywhere; }

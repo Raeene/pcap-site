@@ -122,7 +122,7 @@ function readPcap(buf, dv, le, nano, pk, progress) {
   while (o + 16 <= buf.byteLength) {
     const s = dv.getUint32(o, le), u = dv.getUint32(o + 4, le), cl = dv.getUint32(o + 8, le), ol = dv.getUint32(o + 12, le);
     o += 16; if (o + cl > buf.byteLength) break;
-    const p = decode(new Uint8Array(buf, o, cl), link, ol); p.t = s + u / (nano ? 1e9 : 1e6); pk.push(p); o += cl;
+    const p = decode(new Uint8Array(buf, o, cl), link, ol); p.t = s + u / (nano ? 1e9 : 1e6); p.off = o; p.cl = cl; p.lk = link; pk.push(p); o += cl;
     if (progress && !(pk.length % 50000)) progress(o / buf.byteLength);
   }
   return { format: nano ? 'pcap (ns)' : 'pcap', links };
@@ -155,11 +155,11 @@ function readPcapng(buf, dv, pk, progress) {
       const it = ifs[id] || { link: 1, res: 1e-6 };
       if (o + 28 + cl <= o + bl) {
         const p = decode(new Uint8Array(buf, o + 28, cl), it.link, ol);
-        p.t = hi * 4294967296 * it.res + lo * it.res; pk.push(p);
+        p.t = hi * 4294967296 * it.res + lo * it.res; p.off = o + 28; p.cl = cl; p.lk = it.link; pk.push(p);
       }
     } else if (type === 3) { // Simple Packet Block
       const it = ifs[0] || { link: 1, res: 1e-6 }, ol = dv.getUint32(o + 8, le), cl = Math.min(ol, bl - 16);
-      const p = decode(new Uint8Array(buf, o + 12, cl), it.link, ol); p.t = pk.length ? pk[pk.length - 1].t : 0; pk.push(p);
+      const p = decode(new Uint8Array(buf, o + 12, cl), it.link, ol); p.t = pk.length ? pk[pk.length - 1].t : 0; p.off = o + 12; p.cl = cl; p.lk = it.link; pk.push(p);
     }
     o += bl;
     if (progress && !(pk.length % 50000) && pk.length) progress(o / buf.byteLength);
@@ -279,7 +279,7 @@ function analyze({ pk, format, links }) {
   const evs = [...mm.values()]; for (const e of evs) if (e.c > 1) e.txt += ' (x' + e.c + ')';
   const sev = { alert: 0, warn: 0, info: 0 }; for (const e of evs) sev[e.sev]++;
   const rel = a => a.map(x => ({ ...x, t: x.t - t0 }));
-  const rows = pk.map(p => ({ t: p.t - t0, src: p.src || '', dst: p.dst || '', proto: p.app || p.proto, l4: p.proto, len: p.len, info: p.info, sp: p.sp, dp: p.dp }));
+  const rows = pk.map(p => ({ t: p.t - t0, src: p.src || '', dst: p.dst || '', proto: p.app || p.proto, l4: p.proto, len: p.len, info: p.info, sp: p.sp, dp: p.dp, off: p.off, cl: p.cl, lk: p.lk }));
   return {
     n, bytes, dur, start: t0, format, links: [...links], proto, talk, ports, buckets, ev: evs, sev,
     hosts: Object.keys(talk).length,

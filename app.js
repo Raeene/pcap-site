@@ -13,7 +13,7 @@ const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const ico = n => window.OV ? OV.svg(n) : '';
 
 const status = (msg, err) => { const s = $('#status'); s.className = err ? 'err' : 'busy'; s.innerHTML = msg; };
-let A = null, FILE = '', worker = null;
+let A = null, FILE = '', worker = null, RAW = null, MATCH = [];
 
 function analyze(name, buf) {
   if (worker) worker.terminate();
@@ -30,6 +30,8 @@ function analyze(name, buf) {
     render();
   };
   worker.onerror = () => { worker.terminate(); worker = null; status('Analysis failed. The file may be corrupt, or too large for this device.', true); };
+  RAW = new Uint8Array(buf.slice(0)); // a copy stays here so the inspector can show raw bytes
+  if (typeof Inspect !== 'undefined') Inspect.close();
   worker.postMessage(buf, [buf]);
 }
 
@@ -138,14 +140,15 @@ function render() {
   if (pt.length) h += '<div class="panel"><div class="p-h"><h3>Destination ports</h3></div>' + barList(pt.map(([k, v]) => [k, v, 'port:' + k]), pt[0][1], k => k + (SVC[k] ? ' · ' + SVC[k] : '')) + '</div>';
   h += '</div><div class="panel"><div class="p-h"><h3>Conversations</h3></div><div class="tbl-wrap sh"><table class="tbl"><thead><tr><th>Between</th><th>Protocols</th><th class="num">Packets</th><th class="num">Bytes</th></tr></thead><tbody>' +
     A.conv.map(c => `<tr><td><button class="lnk m" type="button" data-f="ip:${esc(c.a)} ip:${esc(c.b)}">${esc(c.a)} &harr; ${esc(c.b)}</button></td><td class="dim">${esc(Object.keys(c.apps).slice(0, 4).join(' '))}</td><td class="num">${c.p.toLocaleString()}</td><td class="num">${hb(c.b2)}</td></tr>`).join('') + '</tbody></table></div></div></section>';
-  h += '<section class="dsec" id="s-packets"><div class="sec-h"><h2>Packets</h2><span class="cnt" id="cnt"></span></div><div class="filter">' + ico('search') + '<input id="q" type="search" placeholder="ftp   ip:10.0.0.5   port:21   !arp   login" aria-label="Filter packets" autocomplete="off" spellcheck="false"><span class="kbd">/</span></div>' +
-    '<p class="hint">Terms are combined with AND. Use <code>ip:</code>, <code>port:</code>, a protocol name, <code>!</code> to exclude, or any text from the info column.</p>' +
+  h += '<section class="dsec" id="s-packets"><div class="sec-h"><h2>Packets</h2><span class="cnt" id="cnt"></span><button class="btn btn-ghost btn-sm sec-act" type="button" id="csv">' + ico('file') + 'Export CSV</button></div><div class="filter">' + ico('search') + '<input id="q" type="search" placeholder="ftp   ip:10.0.0.5   port:21   !arp   login" aria-label="Filter packets" autocomplete="off" spellcheck="false"><span class="kbd">/</span></div>' +
+    '<p class="hint">Terms are combined with AND. Use <code>ip:</code>, <code>port:</code>, a protocol name, <code>!</code> to exclude, or any text from the info column. <b>Click a packet</b> to inspect its layers and bytes, or follow its conversation.</p>' +
     '<div class="tbl-wrap pkts"><table class="tbl"><thead><tr><th class="num">#</th><th>Time</th><th>Source</th><th>Destination</th><th>Proto</th><th class="num">Len</th><th>Info</th></tr></thead><tbody id="rows"></tbody></table></div></section>';
   $('#out').innerHTML = h;
   $('#tab-art').hidden = !art;
   // the CSP blocks style attributes, so widths go through the CSSOM
   $('#out').querySelectorAll('.track i[data-w]').forEach((i, k) => { i.style.width = reduce ? i.dataset.w + '%' : '0'; if (!reduce) setTimeout(() => { i.style.width = i.dataset.w + '%'; }, 80 + k * 18); });
   $('#q').addEventListener('input', () => filterRows($('#q').value));
+  $('#csv').addEventListener('click', exportCsv);
   filterRows('');
   $('#landing').hidden = true; $('#dash').hidden = false; document.body.classList.add('has-dash');
   scrollTo({ top: 0 });
@@ -166,10 +169,10 @@ function matcher(q) {
 }
 
 function filterRows(q) {
-  const m = matcher(q), out = []; let total = 0;
+  const m = matcher(q), out = []; let total = 0; MATCH = [];
   for (let i = 0; i < A.rows.length; i++) {
-    const r = A.rows[i]; if (!m(r)) continue; total++;
-    if (out.length < ROWS) out.push(`<tr class="pk-${esc(r.proto)}"><td class="num dim">${i + 1}</td><td class="m dim">${fm(r.t)}</td><td class="m">${esc(r.src)}</td><td class="m">${esc(r.dst)}</td><td><span class="proto">${esc(r.proto)}</span></td><td class="num">${r.len}</td><td class="info" title="${esc(r.info)}">${esc(r.info)}</td></tr>`);
+    const r = A.rows[i]; if (!m(r)) continue; total++; MATCH.push(i);
+    if (out.length < ROWS) out.push(`<tr class="pk-${esc(r.proto)}" data-pk="${i}" tabindex="0"><td class="num dim">${i + 1}</td><td class="m dim">${fm(r.t)}</td><td class="m">${esc(r.src)}</td><td class="m">${esc(r.dst)}</td><td><span class="proto">${esc(r.proto)}</span></td><td class="num">${r.len}</td><td class="info" title="${esc(r.info)}">${esc(r.info)}</td></tr>`);
   }
   $('#rows').innerHTML = out.join('') || '<tr><td colspan="7" class="dim">No packets match.</td></tr>';
   $('#cnt').textContent = total === A.rows.length ? total.toLocaleString() + ' packets' : total.toLocaleString() + ' of ' + A.rows.length.toLocaleString() + (total > ROWS ? ' (first ' + ROWS + ' shown)' : '');
@@ -188,6 +191,17 @@ function spy() {
   const tabs = [...document.querySelectorAll('.db-tabs a')];
   spyIO = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) tabs.forEach(t => t.classList.toggle('on', t.getAttribute('href') === '#' + e.target.id)); }), { rootMargin: '-30% 0px -60% 0px' });
   document.querySelectorAll('.dsec').forEach(s => spyIO.observe(s));
+}
+
+// CSV of every packet that matches the current filter (not just the 1000 shown)
+function exportCsv() {
+  const q = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+  const lines = ['no,time,source,destination,protocol,src_port,dst_port,length,info'];
+  for (const i of MATCH) { const r = A.rows[i]; lines.push([i + 1, r.t.toFixed(6), r.src, r.dst, r.proto, r.sp ?? '', r.dp ?? '', r.len, r.info].map(q).join(',')); }
+  const u = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' })), a = document.createElement('a');
+  a.href = u; a.download = FILE.replace(/\.[^.]+$/, '') + '-packets.csv'; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(u), 2000);
+  window.OV && OV.toast('Exported ' + MATCH.length.toLocaleString() + ' packets');
 }
 
 // ---------------------------------------------------------------------
@@ -220,7 +234,8 @@ addEventListener('drop', e => { e.preventDefault(); dragDepth = 0; document.body
 $('#demo').addEventListener('click', loadDemo);
 $('#save').addEventListener('click', saveReport);
 $('#again').addEventListener('click', () => { file.value = ''; file.click(); });
-$('#out').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (b) applyFilter(b.dataset.f); });
+$('#out').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (b) return applyFilter(b.dataset.f); const tr = e.target.closest('tr[data-pk]'); if (tr) Inspect.open(+tr.dataset.pk); });
+$('#out').addEventListener('keydown', e => { const tr = e.target.closest('tr[data-pk]'); if (tr && e.key === 'Enter') Inspect.open(+tr.dataset.pk); });
 $('#out').addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('g[data-f]')) { e.preventDefault(); applyFilter(e.target.dataset.f); } });
 addEventListener('keydown', e => { if (e.key === '/' && $('#q') && !$('#dash').hidden && document.activeElement !== $('#q') && !e.ctrlKey && !e.metaKey) { e.preventDefault(); $('#q').focus(); $('#s-packets').scrollIntoView({ block: 'start' }); } });
 addEventListener('hashchange', () => { if (location.hash === '#demo') loadDemo(); });
