@@ -20,7 +20,7 @@
 <link rel="preload" href="/fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/space-grotesk.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/ds.css"><link rel="stylesheet" href="/app.css">
-<script src="/ds.js" defer></script><script src="/app.js" defer></script><script src="/inspect.js" defer></script>
+<script src="/ds.js" defer></script><script src="/app.js" defer></script><script src="/inspect.js" defer></script><script src="/case.js" defer></script>
 </head>
 <body data-site="pcap" data-offline>
 <a class="skip" href="#main">Skip to content</a>
@@ -121,7 +121,7 @@
     <div class="dash-bar">
       <div class="wrap db-in">
         <div class="db-file"><span class="db-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg></span><div><b id="db-name">capture.pcap</b><span id="db-meta"></span></div></div>
-        <nav class="db-tabs" aria-label="Report sections"><a href="#s-overview">Overview</a><a href="#s-story">Story</a><a href="#s-artifacts" id="tab-art">Artifacts</a><a href="#s-network">Network</a><a href="#s-packets">Packets</a></nav>
+        <nav class="db-tabs" aria-label="Report sections"><a href="#s-overview">Overview</a><a href="#s-case" id="tab-case" hidden>Case</a><a href="#s-story">Story</a><a href="#s-artifacts" id="tab-art">Artifacts</a><a href="#s-network">Network</a><a href="#s-packets">Packets</a></nav>
         <div class="db-act"><button class="btn btn-ghost btn-sm" type="button" id="again"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>New file</button><button class="btn btn-primary btn-sm" type="button" id="save"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>Save report</button></div>
       </div>
     </div>

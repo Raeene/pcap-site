@@ -134,6 +134,7 @@ function render() {
   h += `<section class="dsec" id="s-overview"><div class="verdict v-${verdict[0]} reveal-now"><span class="v-ic">${ico(verdict[0] === 'ok' ? 'shield' : 'bolt')}</span><div><b>${verdict[1]}</b><p>${esc(verdict[2])}</p></div></div>`;
   h += `<div class="tiles"><div class="tile"><span>Packets</span><b>${A.n.toLocaleString()}</b></div><div class="tile"><span>Duration</span><b>${dur(A.dur)}</b></div><div class="tile"><span>Traffic</span><b>${hb(A.bytes)}</b></div><div class="tile"><span>Hosts</span><b>${A.hosts}</b></div><div class="tile t-alert${A.sev.alert ? ' on' : ''}"><span>Alerts</span><b>${A.sev.alert}</b></div><div class="tile t-warn${A.sev.warn ? ' on' : ''}"><span>Warnings</span><b>${A.sev.warn}</b></div></div>`;
   h += '<div class="panel"><div class="p-h"><h3>Timeline</h3><span class="dim">packets over time &middot; dashed lines are findings</span></div>' + timeline() + '</div></section>';
+  if (FILE === 'demo.pcap' && typeof Case !== 'undefined') h += Case.html();
   h += '<section class="dsec" id="s-story"><div class="sec-h"><h2>The story</h2><span class="cnt">' + A.ev.length + ' events</span></div>' + storyHtml(true) + '</section>';
   if (art) h += '<section class="dsec" id="s-artifacts"><div class="sec-h"><h2>Artifacts</h2></div>' + art + '</section>';
   h += '<section class="dsec" id="s-network"><div class="sec-h"><h2>Network</h2></div><div class="panel nm-wrap">' + netmap() + '</div><div class="three">';
@@ -147,6 +148,8 @@ function render() {
     '<div class="tbl-wrap pkts"><table class="tbl"><thead><tr><th class="num">#</th><th>Time</th><th>Source</th><th>Destination</th><th>Proto</th><th class="num">Len</th><th>Info</th></tr></thead><tbody id="rows"></tbody></table></div></section>';
   $('#out').innerHTML = h;
   $('#tab-art').hidden = !art;
+  $('#tab-case').hidden = FILE !== 'demo.pcap';
+  if (typeof Case !== 'undefined') Case.wire($('#out'));
   // the CSP blocks style attributes, so widths go through the CSSOM
   $('#out').querySelectorAll('.track i[data-w]').forEach((i, k) => { i.style.width = reduce ? i.dataset.w + '%' : '0'; if (!reduce) setTimeout(() => { i.style.width = i.dataset.w + '%'; }, 80 + k * 18); });
   $('#q').addEventListener('input', () => filterRows($('#q').value));

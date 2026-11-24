@@ -13,6 +13,7 @@ Live at **[pcap.0vuln.com](https://pcap.0vuln.com)**. Try it instantly: [pcap.0v
 - A **packet table** with a filter (`ftp`, `ip:10.0.0.5`, `port:21`, `!arp`, free text). Click any talker, port or finding to filter.
 - **Packet inspector**: click any packet to see every layer decoded (Ethernet, IPv4/IPv6, TCP/UDP/ICMP, ARP) with checksum verification, and a hex view that highlights the bytes of the field you hover.
 - **Follow conversation**: rebuilds everything two endpoints said to each other, client and server colored.
+- **Solve the case**: seven investigation questions on the demo capture, checked as you type (`case.js`).
 - **TLS server names (SNI)** pulled from ClientHello messages, so encrypted HTTPS still shows which sites were contacted.
 - **Network map** of the busiest hosts, and **CSV export** of the filtered packets.
 - Saves a standalone HTML report.

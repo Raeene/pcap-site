@@ -264,3 +264,25 @@
 @media (max-width: 600px) { .lyr dl div { grid-template-columns: 1fr; gap: 2px; } .lyr dl { padding-left: 14px; } .hex { font-size: 10.5px; } .hex > div { gap: 8px; } }
 .story li, .st-card { min-width: 0; }
 .st-card p, .tl-axis, .verdict p { overflow-wrap: anywhere; }
+
+/* solve the case */
+.case { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; counter-reset: q; }
+.case li { padding: 16px 18px; border-radius: 14px; border: 1px solid var(--line); background: var(--panel); counter-increment: q; transition: border-color .3s, background .3s; }
+.case li.ok { border-color: rgba(52, 211, 153, .4); background: rgba(52, 211, 153, .06); }
+.case label { display: block; font-weight: 600; color: #fff; margin-bottom: 10px; font-size: 14.5px; }
+.case label::before { content: counter(q, decimal-leading-zero) "  "; font: 500 12px var(--mono); color: var(--cyan); }
+.case-row { display: flex; gap: 8px; align-items: center; }
+.case input { flex: 1; min-width: 0; height: 38px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--line-2); background: rgba(0, 0, 0, .25); color: #fff; font: 13.5px var(--mono); outline: none; }
+.case input:focus { border-color: rgba(34, 211, 238, .55); }
+.case li.ok input { border-color: rgba(52, 211, 153, .45); color: var(--green); }
+.case-ok { color: var(--green); font-weight: 700; opacity: 0; transition: opacity .3s; }
+.case li.ok .case-ok { opacity: 1; }
+.case li.ok .case-hint { display: none; }
+.case-hint { font-size: 12.5px; color: var(--dim); padding: 6px 8px; border-radius: 7px; }
+.case-hint:hover { color: #fff; background: var(--panel-2); }
+.case-h { margin: 10px 0 0; font-size: 13px; color: var(--muted); }
+.case-h a { color: var(--cyan); }
+.case-done { margin-top: 16px; padding: 18px 20px; border-radius: 14px; border: 1px solid rgba(52, 211, 153, .4); background: rgba(52, 211, 153, .08); color: var(--muted); }
+.case-done b { color: var(--green); }
+.case-done a { color: #fff; text-decoration: underline; }
+@media (max-width: 760px) { .case { grid-template-columns: 1fr; } }
