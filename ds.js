@@ -73,6 +73,7 @@
     { g: 'Raeene', t: 'About', i: 'user', c: '#34d399', go: url('raeene', '/about/') },
     { g: 'Raeene', t: 'Projects', i: 'grid', c: '#34d399', go: url('raeene', '/projects/') },
     { g: 'Raeene', t: 'Resume', i: 'file', c: '#34d399', go: url('raeene', '/resume/'), k: 'cv' },
+    { g: 'Raeene', t: 'Download resume (PDF)', i: 'file', c: '#34d399', go: url('raeene', '/resume.pdf'), k: 'cv pdf download' },
     { g: 'Raeene', t: 'Now', s: 'What I am learning right now', i: 'clock', c: '#34d399', go: url('raeene', '/now/') },
     { g: 'Try', t: "What's new", s: 'Latest features on 0vuln', i: 'bolt', c: '#9b87ff', go: url('hub', '/changelog/'), k: 'changelog news updates' },
     { g: 'Try', t: 'Load the PacketStory demo', s: 'A capture with a scan, brute force and DNS tunneling', i: 'play', c: '#22d3ee', go: url('pcap', '/#demo') },
