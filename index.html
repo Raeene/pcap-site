@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="no-js">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -7,60 +7,142 @@
 <meta name="description" content="Drop a .pcap or .pcapng file and get the story of what happened in plain language: port scans, brute force, cleartext credentials, DNS tunneling, with MITRE ATT&amp;CK tags. Runs entirely in your browser.">
 <link rel="canonical" href="https://pcap.0vuln.com/">
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="0vuln">
 <meta property="og:url" content="https://pcap.0vuln.com/">
 <meta property="og:title" content="PacketStory: drop a capture, get the story">
-<meta property="og:description" content="Plain-language network forensics in your browser. Nothing is uploaded.">
+<meta property="og:description" content="Drop a .pcap or .pcapng file and get the story of what happened in plain language: port scans, brute force, cleartext credentials, DNS tunneling, with MITRE ATT&amp;CK tags. Runs entirely in your browser.">
 <meta property="og:image" content="https://pcap.0vuln.com/og.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#031018">
+<meta name="theme-color" content="#06070b">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<link rel="preload" href="/vt323.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/app.css">
-<script src="/app.js" defer></script>
+<link rel="preload" href="/fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/space-grotesk.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/ds.css"><link rel="stylesheet" href="/app.css">
+<script src="/ds.js" defer></script><script src="/app.js" defer></script>
 </head>
-<body>
-<a class="skip" href="#main">skip to content</a>
-<header class="ov">
-  <a class="ov-logo" href="https://0vuln.com" aria-label="0vuln.com hub"><img src="/favicon.svg" alt="">0vuln</a><span class="ov-crumb">/ <b>pcap</b></span>
-  <nav aria-label="0vuln sites"><a href="https://range.0vuln.com">range</a><a href="https://raeene.0vuln.com">raeene</a><a href="https://github.com/Raeene/pcap-site">source</a></nav>
+<body data-site="pcap">
+<a class="skip" href="#main">Skip to content</a>
+<div class="bg-fx" aria-hidden="true"><i></i><i></i><i></i></div>
+<header class="nav" id="top">
+  <div class="wrap">
+    <a class="logo" href="https://0vuln.com/" aria-label="0vuln home"><img src="/favicon.svg" alt="" width="28" height="28"><span>0vuln</span></a>
+    <nav class="sites" aria-label="0vuln sites"><a class="s-hub" href="https://0vuln.com/">Hub</a><a class="s-range" href="https://range.0vuln.com/">Range</a><a class="s-pcap" href="https://pcap.0vuln.com/" aria-current="page">PacketStory</a><a class="s-raeene" href="https://raeene.0vuln.com/">Raeene</a></nav>
+    <span class="sp"></span>
+    <nav class="subnav" aria-label="On this site"><a href="/#how">How it works</a><a href="/#detectors">Detectors</a><a href="/#privacy">Privacy</a></nav>
+    <button class="k-btn" type="button" data-cmdk aria-label="Open command menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span class="k-label">Jump to</span><span class="kbd k-mod">Ctrl</span><span class="kbd">K</span></button>
+    <a class="icon-btn gh" href="https://github.com/Raeene/pcap-site" aria-label="Source code on GitHub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12 12 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/></svg></a>
+  </div>
 </header>
-
+<div class="drag-ov" aria-hidden="true"><div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg><b>Drop to analyze</b><span>Parsed on your machine. Nothing is uploaded.</span></div></div>
 <main id="main">
-  <section class="intro" id="intro">
-    <div>
-      <h1 class="glitch">PACKETSTORY</h1>
-      <p class="tag">Drop a packet capture and get the story of what happened, in plain language, with each finding mapped to MITRE ATT&amp;CK.</p>
-      <ul class="badges"><li>.pcap + .pcapng</li><li>17 detectors</li><li><b>&#9679;</b> runs locally</li><li><b>0</b> bytes uploaded</li></ul>
-    </div>
-    <div>
-      <div class="drop" id="drop" role="button" tabindex="0" aria-describedby="drop-help">
-        <pre aria-hidden="true">  .-----.        .-----.
-  | pcap | ---&gt;  | story |
-  '-----'        '-----'</pre>
-        <span class="big">drop a capture here</span>
-        <span class="small" id="drop-help">or click to choose a .pcap / .pcapng file (up to 200 MB)</span>
-      </div>
-      <input id="file" type="file" accept=".pcap,.pcapng,.cap,.dmp" hidden>
-      <div class="alt">
-        <button class="btn" type="button" id="demo">load the demo capture</button>
-        <a class="btn ghost" href="https://range.0vuln.com">make your own in the Range &rarr;</a>
-      </div>
-    </div>
-  </section>
-  <div id="status" role="status" aria-live="polite"></div>
 
-  <ol class="how" id="how">
-    <li><b>parse</b>Your file is read by a Web Worker on your machine. Ethernet, Linux cooked, raw IP and loopback; IPv4 and IPv6.</li>
-    <li><b>detect</b>Heuristics flag scans, sweeps, brute force, cleartext logins, zone transfers, DNS tunneling, ARP spoofing and beaconing.</li>
-    <li><b>explain</b>You get a timeline in plain language, the extracted artifacts, and a packet table you can filter. Save it all as a report.</li>
-  </ol>
+  <div id="landing">
+    <section class="ps-hero">
+      <div class="wrap ps-grid">
+        <div>
+          <span class="pill rise"><b>LOCAL</b>0 bytes uploaded, enforced by CSP</span>
+          <h1 class="h-display rise d1">Drop a capture.<br><span class="grad-acc">Get the story.</span></h1>
+          <p class="lead rise d2">PacketStory turns a .pcap or .pcapng file into a plain-language account of what happened on the wire: scans, brute force, leaked credentials, tunneling. Every finding is mapped to MITRE ATT&amp;CK.</p>
+          <ul class="ps-badges rise d3"><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>pcap + pcapng</li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>17 detectors</li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>IPv4 + IPv6</li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>HTML report</li></ul>
+        </div>
+        <div class="rise d3">
+          <div class="drop" id="drop" role="button" tabindex="0" aria-describedby="drop-help">
+            <div class="drop-in">
+              <span class="drop-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg></span>
+              <b>Drop a capture here</b>
+              <span id="drop-help">or click to choose a .pcap / .pcapng file, up to 200 MB</span>
+            </div>
+          </div>
+          <input id="file" type="file" accept=".pcap,.pcapng,.cap,.dmp" hidden>
+          <div class="drop-alt">
+            <button class="btn btn-acc" type="button" id="demo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 5v14l11-7z"/></svg>Load the demo capture</button>
+            <a class="btn btn-ghost" href="https://range.0vuln.com/">Make your own in the Range<svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          </div>
+          <div id="status" role="status" aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
 
-  <div id="out"></div>
+    <section class="section" id="how">
+      <div class="wrap">
+        <div class="section-head reveal"><p class="eyebrow">How it works</p><h2 class="h-1">Parse. Detect.<br><span class="dim">Explain.</span></h2></div>
+        <div class="grid g3">
+          <div class="card reveal"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg></span><h3>Parse</h3><p>A Web Worker reads your file on your machine. Ethernet with VLANs, Linux cooked v1/v2, raw IP and loopback; IPv4 and IPv6; TCP, UDP, ICMP, ARP, DNS and SNMP.</p></div>
+          <div class="card reveal d1"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span><h3>Detect</h3><p>Heuristics flag scans, sweeps, brute force, cleartext logins, zone transfers, DNS tunneling, ARP spoofing and beaconing. Each one says "suspected", for a reason.</p></div>
+          <div class="card reveal d2"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V5a2 2 0 0 1 2-2h14v16H6a2 2 0 0 0-2 2zm0 0a2 2 0 0 0 2 2h14"/></svg></span><h3>Explain</h3><p>You get a timeline in plain language, the extracted artifacts, a network map and a packet table you can filter. Save it all as a standalone report.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="detectors">
+      <div class="wrap">
+        <div class="section-head reveal"><p class="eyebrow">Detectors</p><h2 class="h-1">What it looks for.</h2><p class="lead">Every detection links to its ATT&amp;CK technique, so the report speaks the same language as a real SOC.</p></div>
+        <div class="det-grid reveal">
+          <div class="det"><span class="tid">T1046</span><b>Port scan</b><p>One host sends SYNs to 20+ ports on a target</p></div>
+          <div class="det"><span class="tid">T1046</span><b>Host sweep</b><p>One host probes the same port on 10+ hosts</p></div>
+          <div class="det"><span class="tid">T1018</span><b>Ping sweep</b><p>ICMP echo to 10+ hosts</p></div>
+          <div class="det"><span class="tid">T1552</span><b>Cleartext credentials</b><p>FTP, POP3, IMAP logins and HTTP Basic auth</p></div>
+          <div class="det"><span class="tid">T1552</span><b>Telnet session</b><p>Any Telnet payload on the wire</p></div>
+          <div class="det"><span class="tid">T1110</span><b>Brute force</b><p>Repeated failed logins or auth-service floods</p></div>
+          <div class="det"><span class="tid">T1595.002</span><b>Vulnerability scanner</b><p>sqlmap, nikto, nmap, gobuster, ffuf user agents</p></div>
+          <div class="det"><span class="tid">T1595.003</span><b>Directory brute force</b><p>20+ HTTP 404s to one client</p></div>
+          <div class="det"><span class="tid">T1590.002</span><b>DNS zone transfer</b><p>AXFR queries</p></div>
+          <div class="det"><span class="tid">T1071.004</span><b>DNS tunneling</b><p>Floods of very long query names</p></div>
+          <div class="det"><span class="tid">T1602.001</span><b>SNMP default community</b><p>Requests using public / private</p></div>
+          <div class="det"><span class="tid">T1557.002</span><b>ARP spoofing</b><p>One IP claimed by 2+ MAC addresses</p></div>
+          <div class="det"><span class="tid">T1071</span><b>Beaconing</b><p>Connections at near-constant intervals</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="privacy">
+      <div class="wrap">
+        <div class="priv reveal">
+          <div>
+            <p class="eyebrow">Privacy</p>
+            <h2 class="h-1">Your capture never<br>leaves this tab.</h2>
+            <p class="lead">Not a promise in a privacy policy: the page's Content-Security-Policy forbids network requests, so the browser itself would block any attempt to send your data anywhere.</p>
+          </div>
+          <pre class="csp"><span class="d"># response header on pcap.0vuln.com</span>
+<span class="k">Content-Security-Policy:</span>
+  default-src <span class="s">'none'</span>;
+  script-src <span class="s">'self'</span>;
+  worker-src <span class="s">'self'</span>;
+  <span class="hl">connect-src <span class="s">'none'</span>;</span>   <span class="d">&larr; no uploads, ever</span>
+  frame-ancestors <span class="s">'none'</span></pre>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div id="dash" hidden>
+    <div class="dash-bar">
+      <div class="wrap db-in">
+        <div class="db-file"><span class="db-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg></span><div><b id="db-name">capture.pcap</b><span id="db-meta"></span></div></div>
+        <nav class="db-tabs" aria-label="Report sections"><a href="#s-overview">Overview</a><a href="#s-story">Story</a><a href="#s-artifacts" id="tab-art">Artifacts</a><a href="#s-network">Network</a><a href="#s-packets">Packets</a></nav>
+        <div class="db-act"><button class="btn btn-ghost btn-sm" type="button" id="again"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>New file</button><button class="btn btn-primary btn-sm" type="button" id="save"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>Save report</button></div>
+      </div>
+    </div>
+    <div class="wrap" id="out"></div>
+  </div>
 </main>
-
 <footer class="foot">
-  <span>PacketStory, part of <a href="https://0vuln.com">0vuln.com</a>. Built by <a href="https://raeene.0vuln.com">Raeene</a>. Only analyze traffic you are allowed to.</span>
-  <nav aria-label="Footer"><a href="https://github.com/Raeene/pcap-site">source (MIT)</a><a href="https://range.0vuln.com">range</a><a href="https://0vuln.com/.well-known/security.txt">security</a></nav>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="logo" href="https://0vuln.com/"><img src="/favicon.svg" alt="" width="28" height="28"><span>0vuln</span></a>
+        <p class="blurb">A free cybersecurity playground. Attack a simulated server, then investigate your own attack from the defender's side. Everything runs in your browser.</p>
+      </div>
+      <div><h4>Tools</h4><ul><li><a href="https://range.0vuln.com/">Range</a></li><li><a href="https://pcap.0vuln.com/">PacketStory</a></li><li><a href="https://pcap.0vuln.com/#demo">PacketStory demo</a></li><li><a href="https://0vuln.com/#shell">Hub shell</a></li></ul></div>
+      <div><h4>Raeene</h4><ul><li><a href="https://raeene.0vuln.com/about/">About</a></li><li><a href="https://raeene.0vuln.com/projects/">Projects</a></li><li><a href="https://raeene.0vuln.com/resume/">Resume</a></li><li><a href="https://raeene.0vuln.com/now/">Now</a></li></ul></div>
+      <div><h4>Elsewhere</h4><ul><li><a href="https://github.com/Raeene">GitHub</a></li><li><a href="https://www.linkedin.com/in/ray-safi-938491195/">LinkedIn</a></li><li><a href="mailto:raaene@protonmail.com">Email</a></li><li><a href="https://0vuln.com/.well-known/security.txt">security.txt</a></li></ul></div>
+    </div>
+    <div class="foot-bot">
+      <span>&copy; <span data-year>2026</span> Mohamed-Rayane (Raeene). <a class="link" href="https://github.com/Raeene/pcap-site">Source on GitHub</a>.</span>
+      <span class="status"><span class="dot"></span>No trackers, no cookies, strict CSP.</span>
+    </div>
+    <div class="foot-word" aria-hidden="true">0vuln</div>
+  </div>
 </footer>
 </body>
 </html>
